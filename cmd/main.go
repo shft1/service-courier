@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"net/http"
+	"serviceDelivery/configs"
 	"serviceDelivery/internal/route"
 )
 
 func main() {
-	http.ListenAndServe(":8080", route.SetupRoute())
+	env := configs.SetupEnv()
+	configs.CliHandler(context.Background(), env)
+	http.ListenAndServe(":"+env.Port, route.SetupRoute())
 }
