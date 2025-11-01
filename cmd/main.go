@@ -2,13 +2,12 @@ package main
 
 import (
 	"context"
-	"net/http"
-	"serviceDelivery/configs"
+	"serviceDelivery/internal/bootstrap"
 	"serviceDelivery/internal/route"
 )
 
 func main() {
-	env := configs.SetupEnv()
-	configs.CliHandler(context.Background(), env)
-	http.ListenAndServe(":"+env.Port, route.SetupRoute())
+	env := bootstrap.SetupEnv()
+	bootstrap.CliHandler(context.Background(), env)
+	bootstrap.StartServerGraceful(route.SetupRoute(), env)
 }
