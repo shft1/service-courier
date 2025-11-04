@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"serviceDelivery/internal/bootstrap"
-	"serviceDelivery/internal/route"
+	"service-courier/internal/bootstrap"
+	"service-courier/internal/route"
 )
 
 func main() {

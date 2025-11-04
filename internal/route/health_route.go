@@ -1,7 +1,7 @@
 package route
 
 import (
-	"serviceDelivery/internal/handler"
+	"service-courier/internal/handler"
 
 	"github.com/go-chi/chi/v5"
 )
