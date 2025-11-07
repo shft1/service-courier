@@ -8,7 +8,12 @@ import (
 )
 
 type Env struct {
-	Port string
+	Port   string
+	DBUser string
+	DBPass string
+	DBName string
+	DBPort string
+	DBHost string
 }
 
 func SetupEnv() *Env {
@@ -22,6 +27,11 @@ func SetupEnv() *Env {
 		os.Setenv("PORT", port)
 	}
 	return &Env{
-		Port: port,
+		Port:   port,
+		DBUser: os.Getenv("POSTGRES_USER"),
+		DBPass: os.Getenv("POSTGRES_PASSWORD"),
+		DBName: os.Getenv("POSTGRES_DB"),
+		DBPort: os.Getenv("POSTGRES_PORT"),
+		DBHost: os.Getenv("POSTGRES_HOST"),
 	}
 }

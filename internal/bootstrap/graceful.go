@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func StartServerGraceful(mR chi.Router, env *Env) {
-	srv := &http.Server{Addr: "0.0.0.0:" + env.Port, Handler: mR}
+func StartServerGraceful(r chi.Router, pool *pgxpool.Pool, env *Env) {
+	defer pool.Close()
+	srv := &http.Server{Addr: "0.0.0.0:" + env.Port, Handler: r}
 
 	srv.RegisterOnShutdown(func() {
 		fmt.Println("Shutting down service-courier")
