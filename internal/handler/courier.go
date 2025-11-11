@@ -1,107 +1,115 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
-	"regexp"
 	"service-courier/internal/entity/courier"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 )
 
-type courierHandler struct {
-	service courier.CourierService
+func courierHandMapError(err error) (int, string) {
+	var (
+		status int
+		msg    string
+	)
+	switch err {
+	case courier.ErrCourierInvalidData:
+		status = http.StatusBadRequest
+		msg = err.Error()
+	case courier.ErrCourierExistPhone:
+		status = http.StatusConflict
+		msg = err.Error()
+	case courier.ErrCourierEmptyData:
+		status = http.StatusBadRequest
+		msg = err.Error()
+	case courier.ErrCourierInvalidPhone:
+		status = http.StatusBadRequest
+		msg = err.Error()
+	case courier.ErrCourierNotFound:
+		status = http.StatusNotFound
+		msg = err.Error()
+	case courier.ErrCourierInvalidID:
+		status = http.StatusBadRequest
+		msg = err.Error()
+	default:
+		status = http.StatusInternalServerError
+		msg = courier.ErrDatabase.Error()
+	}
+	return status, msg
 }
 
-func NewCourierHandler(service courier.CourierService) *courierHandler {
-	return &courierHandler{
+func courierMapResponse(w http.ResponseWriter, status int, data any, err error) {
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		stErr, msg := courierHandMapError(err)
+		w.WriteHeader(stErr)
+		json.NewEncoder(w).Encode(map[string]string{"error": msg})
+		return
+	}
+	if data == nil {
+		w.WriteHeader(status)
+		return
+	}
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(data)
+}
+
+type CourierService interface {
+	Create(ctx context.Context, c *courier.CourierCreate) error
+	GetByID(ctx context.Context, id int) (*courier.CourierGet, error)
+	GetMulti(ctx context.Context) ([]courier.CourierGet, error)
+	Update(ctx context.Context, c *courier.CourierUpdate) error
+}
+
+type CourierHandler struct {
+	service CourierService
+}
+
+func NewCourierHandler(service CourierService) *CourierHandler {
+	return &CourierHandler{
 		service: service,
 	}
 }
 
-func (ch *courierHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (ch *CourierHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var c courier.CourierCreate
-	json.NewDecoder(r.Body).Decode(&c)
-	if c.Name == "" || c.Phone == "" || c.Status == "" {
-		http.Error(w, `{"error": "Missing required fields"}`, http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
+		courierMapResponse(w, 0, nil, courier.ErrCourierInvalidData)
 		return
 	}
-	if !regexp.MustCompile(`^\+?\d{10,16}$`).MatchString(c.Phone) {
-		http.Error(w, `{"error": "Invalid Phone"}`, http.StatusBadRequest)
-		return
-	}
-	err := ch.service.Create(&c)
-	if err != nil {
-		switch {
-		case errors.Is(err, courier.ErrCourierExistPhone):
-			http.Error(w, `{"error": "Courier with same phone already exists"}`, http.StatusConflict)
-		default:
-			http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
-		}
-		return
-	}
-	w.WriteHeader(http.StatusCreated)
+	err := ch.service.Create(ctx, &c)
+	courierMapResponse(w, http.StatusCreated, nil, err)
 }
 
-func (ch *courierHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (ch *CourierHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var updCourier courier.CourierUpdate
-	json.NewDecoder(r.Body).Decode(&updCourier)
-	if updCourier.ID == nil {
-		http.Error(w, `{"error": "The user's ID wasn't transmitted"}`, http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&updCourier); err != nil {
+		courierMapResponse(w, 0, nil, courier.ErrCourierInvalidData)
 		return
 	}
-	if updCourier.Phone != nil {
-		if !regexp.MustCompile(`^\+?\d{10,16}$`).MatchString(*updCourier.Phone) {
-			http.Error(w, `{"error": "Invalid Phone"}`, http.StatusBadRequest)
-			return
-		}
-	}
-	err := ch.service.Update(&updCourier)
-	if err != nil {
-		switch {
-		case errors.Is(err, courier.ErrCourierExistPhone):
-			http.Error(w, `{"error": "Courier with same phone already exists"}`, http.StatusConflict)
-		case errors.Is(err, courier.ErrCourierNotFound):
-			http.Error(w, `{"error": "Courier not found"}`, http.StatusNotFound)
-		default:
-			http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
-		}
-		return
-	}
-	w.WriteHeader(http.StatusOK)
+	err := ch.service.Update(ctx, &updCourier)
+	courierMapResponse(w, http.StatusOK, nil, err)
 }
 
-func (ch *courierHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (ch *CourierHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, `{"error": "Invalid courier ID"}`, http.StatusBadRequest)
+		courierMapResponse(w, 0, nil, courier.ErrCourierInvalidID)
 		return
 	}
-	c, err := ch.service.GetByID(id)
-	if err != nil {
-		switch {
-		case errors.Is(err, courier.ErrCourierNotFound):
-			http.Error(w, `{"error": "Courier not found"}`, http.StatusNotFound)
-		case errors.Is(err, courier.ErrCourierInvalidID):
-			http.Error(w, `{"error": "Invalid courier ID"}`, http.StatusBadRequest)
-		default:
-			http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
-		}
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(c)
+	c, err := ch.service.GetByID(ctx, id)
+	courierMapResponse(w, http.StatusOK, c, err)
 }
 
-func (ch *courierHandler) GetMulti(w http.ResponseWriter, r *http.Request) {
-	couriers, err := ch.service.GetMulti()
-	if err != nil {
-		http.Error(w, `{"error": "Database error"}`, http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(couriers)
+func (ch *CourierHandler) GetMulti(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	couriers, err := ch.service.GetMulti(ctx)
+	courierMapResponse(w, http.StatusOK, couriers, err)
 }

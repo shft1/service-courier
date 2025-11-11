@@ -1,23 +1,36 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"service-courier/internal/entity/courier"
 )
 
-type courierService struct {
-	repository courier.CourierRepository
+type CourierRepository interface {
+	Create(ctx context.Context, c *courier.CourierCreate) error
+	GetByID(ctx context.Context, id int) (*courier.CourierGet, error)
+	GetMulti(ctx context.Context) ([]courier.CourierGet, error)
+	Update(ctx context.Context, c *courier.CourierUpdate) error
 }
 
-func NewCourierService(repo courier.CourierRepository) courier.CourierService {
+type courierService struct {
+	repository CourierRepository
+}
+
+func NewCourierService(repo CourierRepository) *courierService {
 	return &courierService{
 		repository: repo,
 	}
 }
 
-func (cs *courierService) Create(c *courier.CourierCreate) error {
-	err := cs.repository.Create(c)
+func (cs *courierService) Create(ctx context.Context, c *courier.CourierCreate) error {
+	if err := cs.validateCreate(c); err != nil {
+		return err
+	}
+
+	err := cs.repository.Create(ctx, c)
 	if err != nil {
 		switch {
 		case errors.Is(err, courier.ErrCourierExistPhone):
@@ -29,8 +42,12 @@ func (cs *courierService) Create(c *courier.CourierCreate) error {
 	return nil
 }
 
-func (cs *courierService) Update(c *courier.CourierUpdate) error {
-	err := cs.repository.Update(c)
+func (cs *courierService) Update(ctx context.Context, c *courier.CourierUpdate) error {
+	if err := cs.validateUpdate(c); err != nil {
+		return err
+	}
+
+	err := cs.repository.Update(ctx, c)
 	if err != nil {
 		switch {
 		case errors.Is(err, courier.ErrCourierExistPhone):
@@ -44,11 +61,12 @@ func (cs *courierService) Update(c *courier.CourierUpdate) error {
 	return nil
 }
 
-func (cs *courierService) GetByID(id int) (*courier.CourierGet, error) {
+func (cs *courierService) GetByID(ctx context.Context, id int) (*courier.CourierGet, error) {
 	if id < 1 {
 		return nil, courier.ErrCourierInvalidID
 	}
-	c, err := cs.repository.GetByID(id)
+
+	c, err := cs.repository.GetByID(ctx, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, courier.ErrCourierNotFound):
@@ -60,10 +78,31 @@ func (cs *courierService) GetByID(id int) (*courier.CourierGet, error) {
 	return c, nil
 }
 
-func (cs *courierService) GetMulti() ([]courier.CourierGet, error) {
-	couriers, err := cs.repository.GetMulti()
+func (cs *courierService) GetMulti(ctx context.Context) ([]courier.CourierGet, error) {
+	couriers, err := cs.repository.GetMulti(ctx)
+
 	if err != nil {
 		return nil, fmt.Errorf("service: failed to get couriers: %w", err)
 	}
 	return couriers, nil
+}
+
+func (cs *courierService) validateCreate(c *courier.CourierCreate) error {
+	if c.Name == "" || c.Phone == "" || c.Status == "" {
+		return courier.ErrCourierEmptyData
+	}
+	if !regexp.MustCompile(`^\+?\d{10,16}$`).MatchString(c.Phone) {
+		return courier.ErrCourierInvalidPhone
+	}
+	return nil
+}
+
+func (cs *courierService) validateUpdate(c *courier.CourierUpdate) error {
+	if c.ID < 1 {
+		return courier.ErrCourierInvalidID
+	}
+	if c.Phone != nil && !regexp.MustCompile(`^\+?\d{10,16}$`).MatchString(*c.Phone) {
+		return courier.ErrCourierInvalidPhone
+	}
+	return nil
 }

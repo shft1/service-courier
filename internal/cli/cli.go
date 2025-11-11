@@ -1,15 +1,15 @@
-package bootstrap
+package cli
 
 import (
 	"context"
-	"fmt"
 	"os"
+	"service-courier/internal/config"
 
 	"github.com/urfave/cli/v3"
 )
 
-func CliHandler(ctx context.Context, env *Env) {
-	cmd := &cli.Command{
+func CliHandler(env *config.Env) *cli.Command {
+	return &cli.Command{
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "port",
@@ -23,8 +23,5 @@ func CliHandler(ctx context.Context, env *Env) {
 			}
 			return nil
 		},
-	}
-	if err := cmd.Run(ctx, os.Args); err != nil {
-		fmt.Println(err)
 	}
 }
