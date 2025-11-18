@@ -7,12 +7,13 @@ import (
 	"os/signal"
 	"service-courier/internal/cli"
 	"service-courier/internal/config"
-	"service-courier/internal/db"
-	"service-courier/internal/handler"
-	"service-courier/internal/repository"
+	"service-courier/internal/db/postgre"
+	courierHandler "service-courier/internal/handler/courier"
+	healthHandler "service-courier/internal/handler/health"
+	courierRepo "service-courier/internal/repository/courier"
 	"service-courier/internal/router"
 	"service-courier/internal/server"
-	"service-courier/internal/service"
+	courierService "service-courier/internal/service/courier"
 	"syscall"
 )
 
@@ -21,14 +22,14 @@ func main() {
 	defer cancel()
 
 	env := config.SetupEnv()
-	pool := db.InitPool(sysCtx, env)
+	pool := postgre.InitPool(sysCtx, env)
 	defer pool.Close()
 
-	healthHandler := handler.NewHealthHandler()
+	healthHandler := healthHandler.NewHealthHandler()
 
-	courierRepository := repository.NewCourierRepository(pool)
-	courierService := service.NewCourierService(courierRepository)
-	courierHandler := handler.NewCourierHandler(courierService)
+	courierRepository := courierRepo.NewCourierRepository(pool)
+	courierService := courierService.NewCourierService(courierRepository)
+	courierHandler := courierHandler.NewCourierHandler(courierService)
 
 	router := router.SetupRoute(
 		healthHandler,

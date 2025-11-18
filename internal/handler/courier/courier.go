@@ -1,4 +1,4 @@
-package handler
+package courier
 
 import (
 	"context"
@@ -57,7 +57,7 @@ func courierMapResponse(w http.ResponseWriter, status int, data any, err error) 
 	json.NewEncoder(w).Encode(data)
 }
 
-type CourierService interface {
+type courierService interface {
 	Create(ctx context.Context, c *courier.CourierCreate) error
 	GetByID(ctx context.Context, id int) (*courier.CourierGet, error)
 	GetMulti(ctx context.Context) ([]courier.CourierGet, error)
@@ -65,10 +65,10 @@ type CourierService interface {
 }
 
 type CourierHandler struct {
-	service CourierService
+	service courierService
 }
 
-func NewCourierHandler(service CourierService) *CourierHandler {
+func NewCourierHandler(service courierService) *CourierHandler {
 	return &CourierHandler{
 		service: service,
 	}

@@ -1,4 +1,4 @@
-package service
+package courier
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"service-courier/internal/entity/courier"
 )
 
-type CourierRepository interface {
+type courierRepository interface {
 	Create(ctx context.Context, c *courier.CourierCreate) error
 	GetByID(ctx context.Context, id int) (*courier.CourierGet, error)
 	GetMulti(ctx context.Context) ([]courier.CourierGet, error)
@@ -16,10 +16,10 @@ type CourierRepository interface {
 }
 
 type courierService struct {
-	repository CourierRepository
+	repository courierRepository
 }
 
-func NewCourierService(repo CourierRepository) *courierService {
+func NewCourierService(repo courierRepository) *courierService {
 	return &courierService{
 		repository: repo,
 	}

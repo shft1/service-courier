@@ -1,14 +1,17 @@
 package router
 
 import (
-	"service-courier/internal/handler"
+	courierHandler "service-courier/internal/handler/courier"
+	healthHandler "service-courier/internal/handler/health"
+	courierRoute "service-courier/internal/router/courier"
+	healthRouter "service-courier/internal/router/health"
 
 	"github.com/go-chi/chi/v5"
 )
 
-func SetupRoute(hHand *handler.HealthHandler, crHand *handler.CourierHandler) chi.Router {
+func SetupRoute(hHand *healthHandler.HealthHandler, crHand *courierHandler.CourierHandler) chi.Router {
 	mainRouter := chi.NewRouter()
-	HealthRoute(mainRouter, hHand)
-	CourierRoute(mainRouter, crHand)
+	healthRouter.HealthRoute(mainRouter, hHand)
+	courierRoute.CourierRoute(mainRouter, crHand)
 	return mainRouter
 }
