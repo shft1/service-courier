@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"regexp"
 	"service-courier/internal/entity/courier"
 	"strconv"
 
@@ -81,6 +82,10 @@ func (ch *CourierHandler) Create(w http.ResponseWriter, r *http.Request) {
 		courierMapResponse(w, 0, nil, courier.ErrCourierInvalidData)
 		return
 	}
+	if err := ch.validateCreate(&c); err != nil {
+		courierMapResponse(w, 0, nil, err)
+		return
+	}
 	err := ch.service.Create(ctx, &c)
 	courierMapResponse(w, http.StatusCreated, nil, err)
 }
@@ -90,6 +95,10 @@ func (ch *CourierHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var updCourier courier.CourierUpdate
 	if err := json.NewDecoder(r.Body).Decode(&updCourier); err != nil {
 		courierMapResponse(w, 0, nil, courier.ErrCourierInvalidData)
+		return
+	}
+	if err := ch.validateUpdate(&updCourier); err != nil {
+		courierMapResponse(w, 0, nil, err)
 		return
 	}
 	err := ch.service.Update(ctx, &updCourier)
@@ -112,4 +121,24 @@ func (ch *CourierHandler) GetMulti(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	couriers, err := ch.service.GetMulti(ctx)
 	courierMapResponse(w, http.StatusOK, couriers, err)
+}
+
+func (ch *CourierHandler) validateCreate(c *courier.CourierCreate) error {
+	if c.Name == "" || c.Phone == "" || c.Status == "" {
+		return courier.ErrCourierEmptyData
+	}
+	if !regexp.MustCompile(`^\+?\d{10,16}$`).MatchString(c.Phone) {
+		return courier.ErrCourierInvalidPhone
+	}
+	return nil
+}
+
+func (ch *CourierHandler) validateUpdate(c *courier.CourierUpdate) error {
+	if c.ID < 1 {
+		return courier.ErrCourierInvalidID
+	}
+	if c.Phone != nil && !regexp.MustCompile(`^\+?\d{10,16}$`).MatchString(*c.Phone) {
+		return courier.ErrCourierInvalidPhone
+	}
+	return nil
 }

@@ -24,7 +24,7 @@ func courierRepoMapError(err error) error {
 	if errors.Is(err, pgx.ErrNoRows) {
 		return courier.ErrCourierNotFound
 	}
-	return fmt.Errorf("repo: failed to create courier: %w", err)
+	return fmt.Errorf("repo: failed to work with courier: %w", err)
 }
 
 type courierRepository struct {
