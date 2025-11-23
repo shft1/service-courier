@@ -9,5 +9,6 @@ var (
 	ErrCourierInvalidPhone = errors.New("courier's phone number is incorrect")
 	ErrCourierInvalidData  = errors.New("courier's information is incorrect")
 	ErrCourierInvalidID    = errors.New("courier's ID is incorrect")
-	ErrDatabase            = errors.New("database error")
+	ErrCourierDatabase     = errors.New("database error")
+	ErrCourierAvailable    = errors.New("there are no available couriers")
 )

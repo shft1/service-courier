@@ -1,11 +1,15 @@
 -- +goose Up
 -- +goose StatementBegin
-ALTER TABLE couriers
-ADD COLUMN transport_type TEXT NOT NULL DEFAULT 'on_foot';
+BEGIN;
+ALTER TABLE couriers ALTER COLUMN status SET DEFAULT 'available';
+ALTER TABLE couriers ADD COLUMN transport_type TEXT NOT NULL DEFAULT 'on_foot';
+COMMIT;
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-ALTER TABLE couriers
-DROP COLUMN transport_type;
+BEGIN;
+ALTER TABLE couriers ALTER COLUMN status DROP DEFAULT;
+ALTER TABLE couriers DROP COLUMN transport_type;
+COMMIT;
 -- +goose StatementEnd
