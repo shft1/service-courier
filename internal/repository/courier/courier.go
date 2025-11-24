@@ -124,11 +124,19 @@ func (cr *courierRepository) GetAvailable(ctx context.Context) (*courier.Courier
 	if err != nil {
 		return nil, err
 	}
-
 	query := `
-	SELECT id, name, phone, status, transport_type
+	WITH candidate AS (
+		SELECT c.id as cand_id
+		FROM couriers as c
+		LEFT JOIN delivery as d on c.id = d.courier_id
+		WHERE c.status = 'available'
+		GROUP BY c.id
+		ORDER BY COUNT(d.id)
+		LIMIT 1
+	)
+	SELECT couriers.id, couriers.name, couriers.phone, couriers.status, couriers.transport_type
 	FROM couriers
-	WHERE status = 'available'
+	JOIN candidate ON couriers.id = candidate.cand_id
 	FOR UPDATE SKIP LOCKED;`
 
 	err = tx.QueryRow(

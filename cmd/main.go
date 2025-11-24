@@ -17,7 +17,9 @@ import (
 	"service-courier/internal/server"
 	courierService "service-courier/internal/service/courier"
 	deliveryService "service-courier/internal/service/delivery"
+	"service-courier/internal/worker"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -44,6 +46,10 @@ func main() {
 		courierHandler,
 		deliveryHandler,
 	)
+
+	checkPeriod := time.Second * 10
+	deliveryChecker := worker.NewDeliveryMonitor(checkPeriod, deliveryService)
+	go deliveryChecker.Start(sysCtx)
 
 	cmd := cli.CliHandler(env)
 	if err := cmd.Run(sysCtx, os.Args); err != nil {

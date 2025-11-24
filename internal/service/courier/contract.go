@@ -12,4 +12,5 @@ type сourierRepository interface {
 	Update(ctx context.Context, c *courier.CourierUpdate) error
 	GetAvailable(ctx context.Context) (*courier.CourierGet, error)
 	SetBusy(ctx context.Context, id int) error
+	SetAvailable(ctx context.Context, courierID int) error
 }

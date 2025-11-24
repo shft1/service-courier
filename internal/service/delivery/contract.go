@@ -9,6 +9,7 @@ import (
 type deliveryRepository interface {
 	CreateDelivery(ctx context.Context, d *delivery.DeliveryCreate) (*delivery.DeliveryGet, error)
 	DeleteDelivery(ctx context.Context, orderID *delivery.DeliveryOrderID) (*delivery.DeliveryGet, error)
+	RecheckDelivery(ctx context.Context) error
 }
 
 type courierRepository interface {

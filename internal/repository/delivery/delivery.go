@@ -64,3 +64,18 @@ func (dr *deliveryRepository) DeleteDelivery(ctx context.Context, orderID *deliv
 	}
 	return &delivery, nil
 }
+
+func (dr *deliveryRepository) RecheckDelivery(ctx context.Context) error {
+	query := `
+	UPDATE couriers
+	SET status = 'available'
+	WHERE status = 'busy' AND id NOT IN (
+		SELECT courier_id
+		FROM delivery
+		WHERE NOW() <= deadline
+	);`
+	if _, err := dr.pool.Exec(ctx, query); err != nil {
+		return deliveryRepoMapError(err)
+	}
+	return nil
+}

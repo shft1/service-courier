@@ -95,3 +95,10 @@ func (ds *deliveryService) deliveryUnassignInternal(ctx context.Context, orderID
 	return &deliveryUnassign, nil
 
 }
+
+func (ds *deliveryService) DeliveryCheck(ctx context.Context) error {
+	if err := ds.deliveryRepo.RecheckDelivery(ctx); err != nil {
+		return deliveryServiceMapError(err)
+	}
+	return nil
+}
