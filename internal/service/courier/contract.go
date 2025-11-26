@@ -5,7 +5,9 @@ import (
 	"service-courier/internal/entity/courier"
 )
 
-type сourierRepository interface {
+//go:generate mockgen -destination=./mocks/mock_courier_repository.go -package=mocks . courierRepository
+
+type courierRepository interface {
 	Create(ctx context.Context, c *courier.CourierCreate) error
 	GetByID(ctx context.Context, id int) (*courier.CourierGet, error)
 	GetMulti(ctx context.Context) ([]courier.CourierGet, error)

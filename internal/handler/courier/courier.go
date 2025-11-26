@@ -54,7 +54,7 @@ func (ch *CourierHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
-	if err != nil {
+	if err != nil || id < 1 {
 		courierMapResponse(w, 0, nil, courier.ErrCourierInvalidID)
 		return
 	}

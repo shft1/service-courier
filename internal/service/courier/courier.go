@@ -6,10 +6,10 @@ import (
 )
 
 type courierService struct {
-	repository сourierRepository
+	repository courierRepository
 }
 
-func NewCourierService(repo сourierRepository) *courierService {
+func NewCourierService(repo courierRepository) *courierService {
 	return &courierService{
 		repository: repo,
 	}

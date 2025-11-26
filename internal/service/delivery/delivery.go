@@ -3,16 +3,15 @@ package delivery
 import (
 	"context"
 	"service-courier/internal/entity/delivery"
-	"service-courier/internal/service"
 )
 
 type deliveryService struct {
 	deliveryRepo deliveryRepository
 	courierRepo  courierRepository
-	txManager    service.TxManagerDo
+	txManager    TxManagerDo
 }
 
-func NewDeliveryService(dr deliveryRepository, cr courierRepository, txManager service.TxManagerDo) *deliveryService {
+func NewDeliveryService(dr deliveryRepository, cr courierRepository, txManager TxManagerDo) *deliveryService {
 	return &deliveryService{
 		deliveryRepo: dr,
 		courierRepo:  cr,
