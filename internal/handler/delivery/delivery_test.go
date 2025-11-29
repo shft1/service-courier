@@ -1,14 +1,15 @@
-package delivery
+package delivery_test
 
 import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"service-courier/internal/entity/delivery"
-	"service-courier/internal/handler/delivery/mocks"
 	"strings"
 	"testing"
 	"time"
+
+	courierhandler "service-courier/internal/handler/delivery"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -16,7 +17,7 @@ import (
 
 func TestDeliveryHandler_DeliveryAssign(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	m := mocks.NewMockdeliveryService(ctrl)
+	m := NewMockdeliveryService(ctrl)
 
 	delivery := delivery.DeliveryAssign{
 		CourierID:        5,
@@ -37,7 +38,7 @@ func TestDeliveryHandler_DeliveryAssign(t *testing.T) {
 		inputBody    string
 		expectedCode int
 		expectedBody string
-		behaviour    func(*mocks.MockdeliveryService)
+		behaviour    func(*MockdeliveryService)
 	}{
 		{
 			"invalid json",
@@ -65,7 +66,7 @@ func TestDeliveryHandler_DeliveryAssign(t *testing.T) {
 			`{"order_id": "8e6f9097-7c2e-4d84-ba28-0f3b5521a09c"}`,
 			http.StatusInternalServerError,
 			`{"error": "database error"}`,
-			func(m *mocks.MockdeliveryService) {
+			func(m *MockdeliveryService) {
 				m.EXPECT().
 					DeliveryAssign(gomock.Any(), gomock.Any()).
 					Return(nil, errors.New("some unknown error from service"))
@@ -76,7 +77,7 @@ func TestDeliveryHandler_DeliveryAssign(t *testing.T) {
 			`{"order_id": "8e6f9097-7c2e-4d84-ba28-0f3b5521a09c"}`,
 			http.StatusOK,
 			deliveryJSON,
-			func(m *mocks.MockdeliveryService) {
+			func(m *MockdeliveryService) {
 				m.EXPECT().
 					DeliveryAssign(gomock.Any(), gomock.Any()).
 					Return(&delivery, nil)
@@ -89,7 +90,7 @@ func TestDeliveryHandler_DeliveryAssign(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := NewDeliveryHandler(m)
+			h := courierhandler.NewDeliveryHandler(m)
 
 			r := httptest.NewRequest(http.MethodPost, "/delivery/assign", strings.NewReader(tt.inputBody))
 			w := httptest.NewRecorder()
@@ -105,7 +106,7 @@ func TestDeliveryHandler_DeliveryAssign(t *testing.T) {
 
 func TestDeliveryHandler_DeliveryUnassign(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	m := mocks.NewMockdeliveryService(ctrl)
+	m := NewMockdeliveryService(ctrl)
 
 	delivery := delivery.DeliveryUnassign{
 		CourierID: 5,
@@ -124,7 +125,7 @@ func TestDeliveryHandler_DeliveryUnassign(t *testing.T) {
 		inputBody    string
 		expectedCode int
 		expectedBody string
-		behaviour    func(*mocks.MockdeliveryService)
+		behaviour    func(*MockdeliveryService)
 	}{
 		{
 			"invalid json",
@@ -152,7 +153,7 @@ func TestDeliveryHandler_DeliveryUnassign(t *testing.T) {
 			`{"order_id": "8e6f9097-7c2e-4d84-ba28-0f3b5521a09c"}`,
 			http.StatusInternalServerError,
 			`{"error": "database error"}`,
-			func(m *mocks.MockdeliveryService) {
+			func(m *MockdeliveryService) {
 				m.EXPECT().
 					DeliveryUnassign(gomock.Any(), gomock.Any()).
 					Return(nil, errors.New("some unknown error from service"))
@@ -163,7 +164,7 @@ func TestDeliveryHandler_DeliveryUnassign(t *testing.T) {
 			`{"order_id": "8e6f9097-7c2e-4d84-ba28-0f3b5521a09c"}`,
 			http.StatusOK,
 			deliveryJSON,
-			func(m *mocks.MockdeliveryService) {
+			func(m *MockdeliveryService) {
 				m.EXPECT().
 					DeliveryUnassign(gomock.Any(), gomock.Any()).
 					Return(&delivery, nil)
@@ -176,7 +177,7 @@ func TestDeliveryHandler_DeliveryUnassign(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := NewDeliveryHandler(m)
+			h := courierhandler.NewDeliveryHandler(m)
 
 			r := httptest.NewRequest(http.MethodPost, "/delivery/assign", strings.NewReader(tt.inputBody))
 			w := httptest.NewRecorder()

@@ -30,6 +30,7 @@ func (dm *deliveryMonitor) Start(ctx context.Context) {
 		select {
 		case <-ticker.C:
 			dm.execute(ctx)
+			fmt.Println("checked delivery")
 		case <-ctx.Done():
 			dm.stop()
 			return

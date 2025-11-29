@@ -1,4 +1,4 @@
-package courier
+package courier_test
 
 import (
 	"context"
@@ -6,26 +6,25 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"service-courier/internal/entity/courier"
-	"service-courier/internal/handler/courier/mocks"
+	courierhandler "service-courier/internal/handler/courier"
 	"strings"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
 func TestCourierHandler_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	m := mocks.NewMockcourierService(ctrl)
+	m := NewMockcourierService(ctrl)
 
 	tests := []struct {
 		name         string
 		inputBody    string
 		expectedCode int
 		expectedBody string
-		behaviour    func(*mocks.MockcourierService)
+		behaviour    func(*MockcourierService)
 	}{
 		{
 			"invalid json",
@@ -60,7 +59,7 @@ func TestCourierHandler_Create(t *testing.T) {
 			`{"name": "TestName", "phone": "+1234567890"}`,
 			http.StatusConflict,
 			`{"error": "courier with such a phone already exists"}`,
-			func(m *mocks.MockcourierService) {
+			func(m *MockcourierService) {
 				m.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Return(courier.ErrCourierExistPhone)
@@ -71,7 +70,7 @@ func TestCourierHandler_Create(t *testing.T) {
 			`{"name": "TestName", "phone": "+1234567890"}`,
 			http.StatusInternalServerError,
 			`{"error": "database error"}`,
-			func(m *mocks.MockcourierService) {
+			func(m *MockcourierService) {
 				m.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Return(errors.New("some unknown error from service"))
@@ -84,7 +83,7 @@ func TestCourierHandler_Create(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := NewCourierHandler(m)
+			h := courierhandler.NewCourierHandler(m)
 
 			r := httptest.NewRequest(http.MethodPost, "/courier", strings.NewReader(tt.inputBody))
 			w := httptest.NewRecorder()
@@ -100,14 +99,14 @@ func TestCourierHandler_Create(t *testing.T) {
 
 func TestCourierHandler_Update(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	m := mocks.NewMockcourierService(ctrl)
+	m := NewMockcourierService(ctrl)
 
 	tests := []struct {
 		name         string
 		inputBody    string
 		expectedCode int
 		expectedBody string
-		behaviour    func(*mocks.MockcourierService)
+		behaviour    func(*MockcourierService)
 	}{
 		{
 			"invalid json",
@@ -142,7 +141,7 @@ func TestCourierHandler_Update(t *testing.T) {
 			`{"id": 1, "name": "TestName", "phone": "+1234567890"}`,
 			http.StatusConflict,
 			`{"error": "courier with such a phone already exists"}`,
-			func(m *mocks.MockcourierService) {
+			func(m *MockcourierService) {
 				m.EXPECT().
 					Update(gomock.Any(), gomock.Any()).
 					Return(courier.ErrCourierExistPhone)
@@ -153,7 +152,7 @@ func TestCourierHandler_Update(t *testing.T) {
 			`{"id": 100}`,
 			http.StatusNotFound,
 			`{"error": "courier wasn't found"}`,
-			func(m *mocks.MockcourierService) {
+			func(m *MockcourierService) {
 				m.EXPECT().
 					Update(gomock.Any(), gomock.Any()).
 					Return(courier.ErrCourierNotFound)
@@ -164,7 +163,7 @@ func TestCourierHandler_Update(t *testing.T) {
 			`{"id": 1, "name": "TestName", "phone": "+1234567890"}`,
 			http.StatusInternalServerError,
 			`{"error": "database error"}`,
-			func(m *mocks.MockcourierService) {
+			func(m *MockcourierService) {
 				m.EXPECT().
 					Update(gomock.Any(), gomock.Any()).
 					Return(errors.New("some unknown error from service"))
@@ -177,7 +176,7 @@ func TestCourierHandler_Update(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := NewCourierHandler(m)
+			h := courierhandler.NewCourierHandler(m)
 
 			r := httptest.NewRequest(http.MethodPut, "/courier", strings.NewReader(tt.inputBody))
 			w := httptest.NewRecorder()
@@ -193,7 +192,7 @@ func TestCourierHandler_Update(t *testing.T) {
 
 func TestCourierHandler_GetByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	m := mocks.NewMockcourierService(ctrl)
+	m := NewMockcourierService(ctrl)
 
 	c := courier.CourierGet{
 		ID:            1,
@@ -216,7 +215,7 @@ func TestCourierHandler_GetByID(t *testing.T) {
 		inputID      string
 		expectedCode int
 		expectedBody string
-		behaviour    func(*mocks.MockcourierService)
+		behaviour    func(*MockcourierService)
 	}{
 		{
 			"invalid id",
@@ -237,7 +236,7 @@ func TestCourierHandler_GetByID(t *testing.T) {
 			"100",
 			http.StatusNotFound,
 			`{"error": "courier wasn't found"}`,
-			func(m *mocks.MockcourierService) {
+			func(m *MockcourierService) {
 				m.EXPECT().
 					GetByID(gomock.Any(), gomock.Any()).
 					Return(nil, courier.ErrCourierNotFound)
@@ -248,7 +247,7 @@ func TestCourierHandler_GetByID(t *testing.T) {
 			"1",
 			http.StatusInternalServerError,
 			`{"error": "database error"}`,
-			func(m *mocks.MockcourierService) {
+			func(m *MockcourierService) {
 				m.EXPECT().
 					GetByID(gomock.Any(), gomock.Any()).
 					Return(nil, errors.New("some unknown error from service"))
@@ -259,7 +258,7 @@ func TestCourierHandler_GetByID(t *testing.T) {
 			"1",
 			http.StatusOK,
 			courierJSON,
-			func(m *mocks.MockcourierService) {
+			func(m *MockcourierService) {
 				m.EXPECT().
 					GetByID(gomock.Any(), gomock.Any()).
 					Return(&c, nil)
@@ -272,7 +271,7 @@ func TestCourierHandler_GetByID(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := NewCourierHandler(m)
+			h := courierhandler.NewCourierHandler(m)
 
 			r := httptest.NewRequest(http.MethodGet, "/courier/1", nil)
 			w := httptest.NewRecorder()
@@ -292,19 +291,19 @@ func TestCourierHandler_GetByID(t *testing.T) {
 
 func TestCourierHandler_GetMulti(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	m := mocks.NewMockcourierService(ctrl)
+	m := NewMockcourierService(ctrl)
 
 	tests := []struct {
 		name         string
 		expectedCode int
 		expectedBody string
-		behaviour    func(*mocks.MockcourierService)
+		behaviour    func(*MockcourierService)
 	}{
 		{
 			"unknown error",
 			http.StatusInternalServerError,
 			`{"error": "database error"}`,
-			func(m *mocks.MockcourierService) {
+			func(m *MockcourierService) {
 				m.EXPECT().
 					GetMulti(gomock.Any()).
 					Return(nil, errors.New("some unknown error from service"))
@@ -317,7 +316,7 @@ func TestCourierHandler_GetMulti(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := NewCourierHandler(m)
+			h := courierhandler.NewCourierHandler(m)
 
 			r := httptest.NewRequest(http.MethodGet, "/couriers", nil)
 			w := httptest.NewRecorder()
@@ -327,46 +326,6 @@ func TestCourierHandler_GetMulti(t *testing.T) {
 			assert.Equal(t, tt.expectedCode, w.Code)
 			assert.JSONEq(t, tt.expectedBody, w.Body.String())
 
-		})
-	}
-}
-
-func TestCourierHandler_ValidateCreate(t *testing.T) {
-	tests := []struct {
-		name    string
-		input   *courier.CourierCreate
-		wantErr error
-	}{
-		{"empty name", &courier.CourierCreate{Name: "", Phone: "+7876123423"}, courier.ErrCourierEmptyData},
-		{"empty phone", &courier.CourierCreate{Name: "TestName", Phone: ""}, courier.ErrCourierEmptyData},
-		{"invalid phone", &courier.CourierCreate{Name: "TestName", Phone: "-123"}, courier.ErrCourierInvalidPhone},
-		{"valid", &courier.CourierCreate{Name: "TestName", Phone: "+7876123423"}, nil},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := CourierHandler{}
-			err := h.validateCreate(tt.input)
-			require.Equal(t, tt.wantErr, err)
-		})
-	}
-}
-
-func TestCourierHandler_ValidateUpdate(t *testing.T) {
-	tests := []struct {
-		name    string
-		input   *courier.CourierUpdate
-		wantErr error
-	}{
-		{"invalid id", &courier.CourierUpdate{ID: -1}, courier.ErrCourierInvalidID},
-		{"empty id", &courier.CourierUpdate{}, courier.ErrCourierInvalidID},
-		{"invalid phone", &courier.CourierUpdate{ID: 1, Phone: func() *string { s := "-123"; return &s }()}, courier.ErrCourierInvalidPhone},
-		{"valid", &courier.CourierUpdate{ID: 1, Name: func() *string { s := "TestName"; return &s }(), Phone: func() *string { s := "+7876123423"; return &s }()}, nil},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := CourierHandler{}
-			err := h.validateUpdate(tt.input)
-			assert.Equal(t, tt.wantErr, err)
 		})
 	}
 }

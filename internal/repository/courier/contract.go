@@ -1,4 +1,4 @@
-package repository
+package courier
 
 import (
 	"context"
@@ -6,6 +6,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type TxManagerGetConnection interface {
+type txManagerGetConnection interface {
 	GetTx(ctx context.Context) (pgx.Tx, error)
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"service-courier/internal/entity/courier"
-	"service-courier/internal/repository"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,10 +14,10 @@ const tableCouriers = "couriers"
 type courierRepository struct {
 	pool        *pgxpool.Pool
 	queryBilder sq.StatementBuilderType
-	txManager   repository.TxManagerGetConnection
+	txManager   txManagerGetConnection
 }
 
-func NewCourierRepository(pool *pgxpool.Pool, txManager repository.TxManagerGetConnection) *courierRepository {
+func NewCourierRepository(pool *pgxpool.Pool, txManager txManagerGetConnection) *courierRepository {
 	return &courierRepository{
 		pool:        pool,
 		queryBilder: sq.StatementBuilder.PlaceholderFormat(sq.Dollar),

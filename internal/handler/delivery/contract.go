@@ -5,7 +5,7 @@ import (
 	"service-courier/internal/entity/delivery"
 )
 
-//go:generate mockgen -destination=./mocks/mock_delivery_service.go -package=mocks . deliveryService
+//go:generate mockgen -source=contract.go -destination=./mocks_test.go -package=delivery_test
 
 type deliveryService interface {
 	DeliveryAssign(ctx context.Context, orderID *delivery.DeliveryOrderID) (*delivery.DeliveryAssign, error)

@@ -5,7 +5,7 @@ import (
 	"service-courier/internal/entity/courier"
 )
 
-//go:generate mockgen -destination=./mocks/mock_courier_repository.go -package=mocks . courierRepository
+//go:generate mockgen -source=contract.go -destination=./mocks_test.go -package=courier_test
 
 type courierRepository interface {
 	Create(ctx context.Context, c *courier.CourierCreate) error

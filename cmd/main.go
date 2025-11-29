@@ -47,7 +47,7 @@ func main() {
 		deliveryHandler,
 	)
 
-	checkPeriod := time.Second * 10
+	checkPeriod, _ := time.ParseDuration(env.TimeCheck)
 	deliveryChecker := worker.NewDeliveryMonitor(checkPeriod, deliveryService)
 	go deliveryChecker.Start(sysCtx)
 

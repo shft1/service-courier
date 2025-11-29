@@ -3,17 +3,16 @@ package delivery
 import (
 	"context"
 	"service-courier/internal/entity/delivery"
-	"service-courier/internal/repository"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type deliveryRepository struct {
 	pool      *pgxpool.Pool
-	txManager repository.TxManagerGetConnection
+	txManager txManagerGetConnection
 }
 
-func NewDeliveryRepository(pool *pgxpool.Pool, txManager repository.TxManagerGetConnection) *deliveryRepository {
+func NewDeliveryRepository(pool *pgxpool.Pool, txManager txManagerGetConnection) *deliveryRepository {
 	return &deliveryRepository{
 		pool:      pool,
 		txManager: txManager,
