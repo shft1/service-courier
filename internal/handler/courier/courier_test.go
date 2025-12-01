@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"service-courier/internal/entity/courier"
-	courierhandler "service-courier/internal/handler/courier"
+	courhand "service-courier/internal/handler/courier"
 	"strings"
 	"testing"
 
@@ -83,7 +83,7 @@ func TestCourierHandler_Create(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := courierhandler.NewCourierHandler(m)
+			h := courhand.NewCourierHandler(m)
 
 			r := httptest.NewRequest(http.MethodPost, "/courier", strings.NewReader(tt.inputBody))
 			w := httptest.NewRecorder()
@@ -176,7 +176,7 @@ func TestCourierHandler_Update(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := courierhandler.NewCourierHandler(m)
+			h := courhand.NewCourierHandler(m)
 
 			r := httptest.NewRequest(http.MethodPut, "/courier", strings.NewReader(tt.inputBody))
 			w := httptest.NewRecorder()
@@ -271,7 +271,7 @@ func TestCourierHandler_GetByID(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := courierhandler.NewCourierHandler(m)
+			h := courhand.NewCourierHandler(m)
 
 			r := httptest.NewRequest(http.MethodGet, "/courier/1", nil)
 			w := httptest.NewRecorder()
@@ -316,7 +316,7 @@ func TestCourierHandler_GetMulti(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := courierhandler.NewCourierHandler(m)
+			h := courhand.NewCourierHandler(m)
 
 			r := httptest.NewRequest(http.MethodGet, "/couriers", nil)
 			w := httptest.NewRecorder()

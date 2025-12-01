@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"service-courier/internal/entity/courier"
 	"service-courier/internal/entity/delivery"
-	deliveryserivce "service-courier/internal/service/delivery"
+	delserv "service-courier/internal/service/delivery"
 	"testing"
 	"time"
 
@@ -136,7 +136,7 @@ func TestDeliveryService_Assign(t *testing.T) {
 					return fn(ctx)
 				})
 			ctx := context.Background()
-			s := deliveryserivce.NewDeliveryService(md, mc, mtx)
+			s := delserv.NewDeliveryService(md, mc, mtx)
 			res, err := s.DeliveryAssign(ctx, tt.input)
 
 			assert.Equal(t, tt.srvExp, res)
@@ -231,7 +231,7 @@ func TestDeliveryService_Unassign(t *testing.T) {
 					return fn(ctx)
 				})
 			ctx := context.Background()
-			s := deliveryserivce.NewDeliveryService(md, mc, mtx)
+			s := delserv.NewDeliveryService(md, mc, mtx)
 			res, err := s.DeliveryUnassign(ctx, nil)
 
 			assert.Equal(t, tt.srvExp, res)
@@ -265,7 +265,7 @@ func TestDeliveryService_Check(t *testing.T) {
 				Return(tt.dRepoRdErr)
 
 			ctx := context.Background()
-			s := deliveryserivce.NewDeliveryService(md, mc, mtx)
+			s := delserv.NewDeliveryService(md, mc, mtx)
 			err := s.DeliveryCheck(ctx)
 
 			assert.ErrorIs(t, err, tt.dRepoRdErr)

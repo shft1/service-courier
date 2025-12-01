@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"service-courier/internal/entity/courier"
-	courierservice "service-courier/internal/service/courier"
+	courserv "service-courier/internal/service/courier"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,7 +32,7 @@ func TestCourierService_Create(t *testing.T) {
 
 			ctx := context.Background()
 			courier := &courier.CourierCreate{}
-			s := courierservice.NewCourierService(m)
+			s := courserv.NewCourierService(m)
 			err := s.Create(ctx, courier)
 
 			assert.ErrorIs(t, err, tt.repoErr)
@@ -62,7 +62,7 @@ func TestCourierService_Update(t *testing.T) {
 
 			ctx := context.Background()
 			courier := &courier.CourierUpdate{}
-			s := courierservice.NewCourierService(m)
+			s := courserv.NewCourierService(m)
 			err := s.Update(ctx, courier)
 
 			assert.ErrorIs(t, err, tt.repoErr)
@@ -92,7 +92,7 @@ func TestCourierService_GetByID(t *testing.T) {
 				Return(tt.repoRes, tt.repoErr)
 
 			ctx, id := context.Background(), 1
-			s := courierservice.NewCourierService(m)
+			s := courserv.NewCourierService(m)
 			res, err := s.GetByID(ctx, id)
 
 			assert.Equal(t, res, tt.srvRes)
@@ -121,7 +121,7 @@ func TestCourierService_GetMulti(t *testing.T) {
 			Return(tt.repoRes, tt.repoErr)
 
 		ctx := context.Background()
-		s := courierservice.NewCourierService(m)
+		s := courserv.NewCourierService(m)
 		res, err := s.GetMulti(ctx)
 
 		assert.Equal(t, res, tt.srvRes)

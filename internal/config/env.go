@@ -34,6 +34,6 @@ func SetupEnv() *Env {
 		DBName:    os.Getenv("POSTGRES_DB"),
 		DBPort:    os.Getenv("POSTGRES_PORT"),
 		DBHost:    os.Getenv("POSTGRES_HOST"),
-		TimeCheck: os.Getenv("TIMECHECK"),
+		TimeCheck: os.Getenv("TIME_CHECK"),
 	}
 }
