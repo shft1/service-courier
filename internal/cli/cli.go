@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+// CliHandler - парсер командной строки
 func CliHandler(env *config.Env) *cli.Command {
 	return &cli.Command{
 		Flags: []cli.Flag{

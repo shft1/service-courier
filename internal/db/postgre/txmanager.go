@@ -11,14 +11,17 @@ import (
 
 type txContextKey struct{}
 
+// txManagerPostgre - транзакционный менеджер
 type txManagerPostgre struct {
 	pool *pgxpool.Pool
 }
 
+// NewTxManagerPostgre - конструктор транзакционного менеджера
 func NewTxManagerPostgre(pool *pgxpool.Pool) *txManagerPostgre {
 	return &txManagerPostgre{pool: pool}
 }
 
+// Do - обернуть переданную функцию в транзакцию
 func (tm *txManagerPostgre) Do(prnt context.Context, fn func(ctx context.Context) error) error {
 	tx, err := tm.begin(prnt)
 	if err != nil {
@@ -50,6 +53,7 @@ func (tm *txManagerPostgre) commit(prnt context.Context, tx pgx.Tx) error {
 	return tx.Commit(prnt)
 }
 
+// GetTx - получить транзакционное соединение из контекста
 func (tm *txManagerPostgre) GetTx(ctx context.Context) (pgx.Tx, error) {
 	tx, ok := ctx.Value(txContextKey{}).(pgx.Tx)
 	if !ok {

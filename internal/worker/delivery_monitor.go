@@ -6,22 +6,23 @@ import (
 	"time"
 )
 
-type checkDelivery interface {
-	DeliveryCheck(ctx context.Context) error
+type deliveryChecker interface {
+	CheckDelivery(ctx context.Context) error
 }
 
 type deliveryMonitor struct {
-	checkPeriod  time.Duration
-	checkService checkDelivery
+	checkPeriod time.Duration
+	checker     deliveryChecker
 }
 
-func NewDeliveryMonitor(checkPeriod time.Duration, checkService checkDelivery) *deliveryMonitor {
+func NewDeliveryMonitor(checkPeriod time.Duration, checker deliveryChecker) *deliveryMonitor {
 	return &deliveryMonitor{
-		checkPeriod:  checkPeriod,
-		checkService: checkService,
+		checkPeriod: checkPeriod,
+		checker:     checker,
 	}
 }
 
+// Start - запуск фонового воркера проверки доставок
 func (dm *deliveryMonitor) Start(ctx context.Context) {
 	ticker := time.NewTicker(dm.checkPeriod)
 	defer ticker.Stop()
@@ -38,12 +39,14 @@ func (dm *deliveryMonitor) Start(ctx context.Context) {
 	}
 }
 
+// execute - проверка доставок
 func (dm *deliveryMonitor) execute(ctx context.Context) {
-	if err := dm.checkService.DeliveryCheck(ctx); err != nil {
+	if err := dm.checker.CheckDelivery(ctx); err != nil {
 		fmt.Println(err.Error())
 	}
 }
 
+// stop - завершение воркера
 func (dm *deliveryMonitor) stop() {
 	fmt.Println("stop delivery monitoring")
 }

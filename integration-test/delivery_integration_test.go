@@ -21,12 +21,12 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
 	"service-courier/internal/db/postgre"
-	"service-courier/internal/entity/delivery"
-	deliveryHandler "service-courier/internal/handler/delivery"
-	courierRepository "service-courier/internal/repository/courier"
-	deliveryRepository "service-courier/internal/repository/delivery"
-	deliveryRouter "service-courier/internal/router/delivery"
-	deliveryService "service-courier/internal/service/delivery"
+	"service-courier/internal/domain/delivery"
+	"service-courier/internal/handler/deliveryhttp"
+	"service-courier/internal/repository/courierdb"
+	"service-courier/internal/repository/deliverydb"
+	"service-courier/internal/router/deliveryroute"
+	"service-courier/internal/service/deliveryapp"
 )
 
 const (
@@ -40,8 +40,8 @@ type DeliveryTestSuite struct {
 	pool          *pgxpool.Pool
 	ctx           context.Context
 	orderID       string
-	courierID     int
-	freeCourierID int
+	courierID     int64
+	freeCourierID int64
 	newDeliveryID string
 }
 
@@ -90,14 +90,16 @@ func (s *DeliveryTestSuite) SetupSuite() {
 
 	txManager := postgre.NewTxManagerPostgre(pool)
 
-	courierRepository := courierRepository.NewCourierRepository(pool, txManager)
+	timeFactory := deliveryapp.NewFactoryTimeCalculator()
 
-	deliveryRepository := deliveryRepository.NewDeliveryRepository(pool, txManager)
-	deliveryService := deliveryService.NewDeliveryService(deliveryRepository, courierRepository, txManager)
-	deliveryHandler := deliveryHandler.NewDeliveryHandler(deliveryService)
+	courierdb := courierdb.NewCourierRepository(pool, txManager)
+
+	deliverydb := deliverydb.NewDeliveryRepository(pool, txManager)
+	deliveryapp := deliveryapp.NewDeliveryService(deliverydb, courierdb, timeFactory, txManager)
+	deliveryhttp := deliveryhttp.NewDeliveryHandler(deliveryapp)
 
 	router := chi.NewRouter()
-	deliveryRouter.DeliveryRoute(router, deliveryHandler)
+	deliveryroute.DeliveryRoute(router, deliveryhttp)
 	s.server = httptest.NewServer(router)
 }
 
@@ -134,33 +136,35 @@ func (s *DeliveryTestSuite) TestDeliveryAssign() {
 	payload := `{"order_id": "1e4f9095-7c2e-4d84-ba28-0f3b5521a19c"}`
 	resp, err := http.Post(s.server.URL+assignURL, "application/json", strings.NewReader(payload))
 	s.Require().NoError(err)
+	defer resp.Body.Close()
 
-	var delivery delivery.DeliveryAssign
-	err = json.NewDecoder(resp.Body).Decode(&delivery)
+	var del deliveryhttp.DeliveryAssignResponse
+	err = json.NewDecoder(resp.Body).Decode(&del)
 	s.Require().NoError(err)
 
 	s.Equal(http.StatusOK, resp.StatusCode)
-	s.Equal("1e4f9095-7c2e-4d84-ba28-0f3b5521a19c", delivery.OrderID)
-	s.Equal(s.freeCourierID, delivery.CourierID)
-	s.NotZero(delivery.TransportType)
-	s.NotZero(delivery.DeliveryDeadline)
+	s.Equal("1e4f9095-7c2e-4d84-ba28-0f3b5521a19c", del.OrderID)
+	s.Equal(s.freeCourierID, del.CourierID)
+	s.NotZero(del.TransportType)
+	s.NotZero(del.Deadline)
 
-	s.newDeliveryID = delivery.OrderID
+	s.newDeliveryID = del.OrderID
 }
 
 func (s *DeliveryTestSuite) TestDeliveryUnassign() {
 	payload := fmt.Sprintf(`{"order_id": "%s"}`, s.orderID)
 	resp, err := http.Post(s.server.URL+unassignURL, "application/json", strings.NewReader(payload))
 	s.Require().NoError(err)
+	defer resp.Body.Close()
 
-	var delivery delivery.DeliveryUnassign
-	err = json.NewDecoder(resp.Body).Decode(&delivery)
+	var del deliveryhttp.DeliveryUnassignResponse
+	err = json.NewDecoder(resp.Body).Decode(&del)
 	s.Require().NoError(err)
 
 	s.Equal(http.StatusOK, resp.StatusCode)
-	s.Equal(s.orderID, delivery.OrderID)
-	s.Equal("unassigned", delivery.Status)
-	s.Equal(s.courierID, delivery.CourierID)
+	s.Equal(s.orderID, del.OrderID)
+	s.Equal(delivery.UnassignStatus, del.Status)
+	s.Equal(s.courierID, del.CourierID)
 }
 
 func (s *DeliveryTestSuite) TearDownTest() {

@@ -17,6 +17,7 @@ type Env struct {
 	TimeCheck string
 }
 
+// SetupEnv - парсер env переменных
 func SetupEnv() *Env {
 	err := godotenv.Load()
 	if err != nil {

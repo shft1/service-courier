@@ -22,6 +22,7 @@ func pingWithRetry(ctx context.Context, pool *pgxpool.Pool) error {
 	return err
 }
 
+// InitPool - создание пула соединений с БД
 func InitPool(ctx context.Context, env *config.Env) *pgxpool.Pool {
 	connString := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",

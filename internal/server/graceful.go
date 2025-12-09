@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// StartServerGraceful - запуск сервера через graceful shutdown
 func StartServerGraceful(ctx context.Context, r chi.Router, pool *pgxpool.Pool, env *config.Env) {
 	srv := &http.Server{Addr: "0.0.0.0:" + env.Port, Handler: r}
 
