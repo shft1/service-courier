@@ -22,11 +22,10 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
 	"service-courier/internal/db/postgre"
-	"service-courier/internal/entity/courier"
-	courierHandler "service-courier/internal/handler/courier"
-	courierRepository "service-courier/internal/repository/courier"
-	courierRouter "service-courier/internal/router/courier"
-	courierService "service-courier/internal/service/courier"
+	"service-courier/internal/handler/courierhttp"
+	"service-courier/internal/repository/courierdb"
+	"service-courier/internal/router/courierroute"
+	"service-courier/internal/service/courierapp"
 )
 
 const (
@@ -39,7 +38,7 @@ type CourierTestSuite struct {
 	server    *httptest.Server
 	pool      *pgxpool.Pool
 	ctx       context.Context
-	courierID int
+	courierID int64
 }
 
 func (s *CourierTestSuite) SetupSuite() {
@@ -87,11 +86,11 @@ func (s *CourierTestSuite) SetupSuite() {
 
 	txManager := postgre.NewTxManagerPostgre(pool)
 
-	repo := courierRepository.NewCourierRepository(pool, txManager)
-	srv := courierService.NewCourierService(repo)
-	hand := courierHandler.NewCourierHandler(srv)
+	repo := courierdb.NewCourierRepository(pool, txManager)
+	srv := courierapp.NewCourierService(repo)
+	hand := courierhttp.NewCourierHandler(srv)
 	router := chi.NewRouter()
-	courierRouter.CourierRoute(router, hand)
+	courierroute.CourierRoute(router, hand)
 
 	s.server = httptest.NewServer(router)
 }
@@ -118,19 +117,20 @@ func (s *CourierTestSuite) TestCreateCourier() {
 }
 
 func (s *CourierTestSuite) TestGetByIDCourier() {
-	resp, err := http.Get(s.server.URL + getByIDURL + strconv.Itoa(s.courierID))
+	resp, err := http.Get(s.server.URL + getByIDURL + strconv.Itoa(int(s.courierID)))
 	s.Require().NoError(err)
+	defer resp.Body.Close()
 
-	var courier courier.CourierGet
-	err = json.NewDecoder(resp.Body).Decode(&courier)
+	var cour courierhttp.CourierResponse
+	err = json.NewDecoder(resp.Body).Decode(&cour)
 	s.Require().NoError(err)
 
 	s.Equal(http.StatusOK, resp.StatusCode)
-	s.Equal(s.courierID, courier.ID)
-	s.Equal("TestCourier", courier.Name)
-	s.Equal("+1234567890", courier.Phone)
-	s.Equal("busy", courier.Status)
-	s.Equal("scooter", courier.TransportType)
+	s.Equal(s.courierID, cour.ID)
+	s.Equal("TestCourier", cour.Name)
+	s.Equal("+1234567890", cour.Phone)
+	s.Equal("busy", cour.Status)
+	s.Equal("scooter", cour.TransportType)
 }
 
 func (s *CourierTestSuite) TearDownTest() {

@@ -1,0 +1,112 @@
+package deliveryapp
+
+import (
+	"context"
+	"service-courier/internal/domain/delivery"
+)
+
+// deliveryService - сервис доставки
+type deliveryService struct {
+	deliveryRepo deliveryRepository
+	courierRepo  courierRepository
+	factory      timeCalculatorFactory
+	txManager    txManagerDo
+}
+
+// NewDeliveryService - конструктор сервиса доставок
+func NewDeliveryService(dr deliveryRepository, cr courierRepository, factory timeCalculatorFactory, txManager txManagerDo) *deliveryService {
+	return &deliveryService{
+		deliveryRepo: dr,
+		courierRepo:  cr,
+		factory:      factory,
+		txManager:    txManager,
+	}
+}
+
+// Assign - создает доставку на свободного курьера
+func (ds *deliveryService) Assign(ctx context.Context, orderID delivery.OrderID) (*delivery.AssignResult, error) {
+	var assignRes *delivery.AssignResult
+
+	err := ds.txManager.Do(ctx, func(ctx context.Context) error {
+		res, err := ds.doAssign(ctx, orderID)
+		assignRes = res
+		return err
+	})
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return assignRes, nil
+}
+
+// doAssign - вспомогательная функция для Assign
+func (ds *deliveryService) doAssign(ctx context.Context, orderID delivery.OrderID) (*delivery.AssignResult, error) {
+	var assignRes delivery.AssignResult
+	var assignCreate delivery.AssignCreate
+
+	cour, err := ds.courierRepo.GetAvailable(ctx)
+	if err != nil {
+		return nil, err
+	}
+	calc, err := ds.factory.GetDeliveryCalculator(cour.TransportType)
+	if err != nil {
+		return nil, err
+	}
+	assignCreate.CourierID = cour.ID
+	assignCreate.OrderID = orderID.OrderID
+	assignCreate.Deadline = calc.Calculate()
+
+	del, err := ds.deliveryRepo.Create(ctx, &assignCreate)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := ds.courierRepo.SetBusy(ctx, del.CourierID); err != nil {
+		return nil, err
+	}
+	assignRes.CourierID = del.CourierID
+	assignRes.OrderID = del.OrderID
+	assignRes.TransportType = cour.TransportType
+	assignRes.Deadline = del.Deadline
+
+	return &assignRes, nil
+}
+
+// Unassign - удаляет доставку и освобождает соответствующего курьера
+func (ds *deliveryService) Unassign(ctx context.Context, orderID delivery.OrderID) (*delivery.UnassignResult, error) {
+	var unassignRes *delivery.UnassignResult
+
+	err := ds.txManager.Do(ctx, func(ctx context.Context) error {
+		res, err := ds.doUnassign(ctx, orderID)
+		unassignRes = res
+		return err
+	})
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return unassignRes, nil
+}
+
+// doUnassign - вспомогательная функция для Unassign
+func (ds *deliveryService) doUnassign(ctx context.Context, orderID delivery.OrderID) (*delivery.UnassignResult, error) {
+	var unassignRes delivery.UnassignResult
+
+	del, err := ds.deliveryRepo.Delete(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+	if _, err = ds.courierRepo.SetAvailable(ctx, del.CourierID); err != nil {
+		return nil, err
+	}
+	unassignRes.OrderID = del.OrderID
+	unassignRes.Status = delivery.UnassignStatus
+	unassignRes.CourierID = del.CourierID
+
+	return &unassignRes, nil
+}
+
+// CheckDelivery - проверяет состояние доставок
+func (ds *deliveryService) CheckDelivery(ctx context.Context) error {
+	if err := ds.courierRepo.ReleaseStaleBusy(ctx); err != nil {
+		return mapError(err)
+	}
+	return nil
+}
