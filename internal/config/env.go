@@ -21,19 +21,19 @@ type Env struct {
 func SetupEnv() *Env {
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		fmt.Println("Error loading .env file (e.x. not found)")
 	}
-	port := os.Getenv("PORT")
+	port := os.Getenv("COURIER_LOCALPORT")
 	if port == "" {
 		port = "8080"
-		os.Setenv("PORT", port)
+		os.Setenv("COURIER_LOCALPORT", port)
 	}
 	return &Env{
 		Port:      port,
 		DBUser:    os.Getenv("POSTGRES_USER"),
 		DBPass:    os.Getenv("POSTGRES_PASSWORD"),
 		DBName:    os.Getenv("POSTGRES_DB"),
-		DBPort:    os.Getenv("POSTGRES_PORT"),
+		DBPort:    os.Getenv("POSTGRES_LOCALPORT"),
 		DBHost:    os.Getenv("POSTGRES_HOST"),
 		TimeCheck: os.Getenv("TIME_CHECK"),
 	}

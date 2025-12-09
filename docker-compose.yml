@@ -10,4 +10,19 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_PORT}:${POSTGRES_LOCALPORT}"
+    networks:
+      - infrastructure_default
+  service-courier:
+    build: .
+    container_name: service-courier
+    ports:
+      - "${COURIER_PORT}:${COURIER_LOCALPORT}"
+    env_file:
+      - path: .env
+    networks:
+      - infrastructure_default
+
+networks:
+  infrastructure_default:
+    external: true
