@@ -9,12 +9,14 @@ import (
 
 type Env struct {
 	Port      string
+	OrderPort string
 	DBUser    string
 	DBPass    string
 	DBName    string
 	DBPort    string
 	DBHost    string
 	TimeCheck string
+	TimePoll  string
 }
 
 // SetupEnv - парсер env переменных
@@ -30,11 +32,13 @@ func SetupEnv() *Env {
 	}
 	return &Env{
 		Port:      port,
+		OrderPort: os.Getenv("ORDER_SERVICE_HOST"),
 		DBUser:    os.Getenv("POSTGRES_USER"),
 		DBPass:    os.Getenv("POSTGRES_PASSWORD"),
 		DBName:    os.Getenv("POSTGRES_DB"),
 		DBPort:    os.Getenv("POSTGRES_LOCALPORT"),
 		DBHost:    os.Getenv("POSTGRES_HOST"),
 		TimeCheck: os.Getenv("TIME_CHECK"),
+		TimePoll:  os.Getenv("TIME_POLL"),
 	}
 }

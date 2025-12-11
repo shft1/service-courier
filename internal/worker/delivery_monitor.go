@@ -39,14 +39,12 @@ func (dm *deliveryMonitor) Start(ctx context.Context) {
 	}
 }
 
-// execute - проверка доставок
 func (dm *deliveryMonitor) execute(ctx context.Context) {
 	if err := dm.checker.CheckDelivery(ctx); err != nil {
 		fmt.Println(err.Error())
 	}
 }
 
-// stop - завершение воркера
 func (dm *deliveryMonitor) stop() {
 	fmt.Println("stop delivery monitoring")
 }

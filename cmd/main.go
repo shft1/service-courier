@@ -8,9 +8,11 @@ import (
 	"service-courier/internal/cli"
 	"service-courier/internal/config"
 	"service-courier/internal/db/postgre"
+	"service-courier/internal/gateway/order"
 	"service-courier/internal/handler/courierhttp"
 	"service-courier/internal/handler/deliveryhttp"
 	"service-courier/internal/handler/healthhttp"
+	orderPB "service-courier/internal/proto/order"
 	"service-courier/internal/repository/courierdb"
 	"service-courier/internal/repository/deliverydb"
 	"service-courier/internal/router"
@@ -20,6 +22,9 @@ import (
 	"service-courier/internal/worker"
 	"syscall"
 	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -54,11 +59,27 @@ func main() {
 	delHTTP := deliveryhttp.NewDeliveryHandler(delApp)
 
 	// Регистрация адресов на обработчиков
-	router := router.SetupRoute(
-		healthHTTP,
-		courHTTP,
-		delHTTP,
-	)
+	router := router.SetupRoute(healthHTTP, courHTTP, delHTTP)
+
+	// Инициализация gRPC
+	conn, err := grpc.NewClient(env.OrderPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		fmt.Println("failed to connect to gRPC server", err)
+	}
+	defer conn.Close()
+
+	clientPB := orderPB.NewOrdersServiceClient(conn)
+	orderGW := order.NewGateway(clientPB)
+
+	// Инициализация фонового воркера получения и назначения заказов
+	pollPeriod, err := time.ParseDuration(env.TimePoll)
+	if err != nil {
+		fmt.Println("error parsing time poll period:", err)
+		pollPeriod = time.Second * 10
+	}
+	orderPoller := worker.NewOrderPoller(pollPeriod, orderGW, delApp)
+
+	go orderPoller.Start(sysCtx)
 
 	// Инициализация фонового воркера проверки доставок
 	checkPeriod, err := time.ParseDuration(env.TimeCheck)
