@@ -1,0 +1,14 @@
+services:
+  service-consumer:
+    build:
+      context: ../../
+      dockerfile: deploy/consumer/Dockerfile
+    container_name: service-consumer
+    env_file:
+     - .env
+    networks:
+      - infrastructure_default
+
+networks:
+  infrastructure_default:
+    external: true

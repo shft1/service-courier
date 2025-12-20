@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"service-courier/internal/config"
+	"service-courier/internal/config/appcfg"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -12,8 +12,8 @@ import (
 )
 
 // StartServerGraceful - запуск сервера через graceful shutdown
-func StartServerGraceful(ctx context.Context, r chi.Router, pool *pgxpool.Pool, env *config.Env) {
-	srv := &http.Server{Addr: "0.0.0.0:" + env.Port, Handler: r}
+func StartServerGraceful(ctx context.Context, r chi.Router, pool *pgxpool.Pool, env *appcfg.AppEnv) {
+	srv := &http.Server{Addr: "0.0.0.0:" + env.AppPort, Handler: r}
 
 	srv.RegisterOnShutdown(func() {
 		fmt.Println("Shutting down service-courier")

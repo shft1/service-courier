@@ -4,6 +4,7 @@ import (
 	"context"
 	"service-courier/internal/domain/courier"
 	"service-courier/internal/domain/delivery"
+	"service-courier/internal/domain/order"
 	"time"
 )
 
@@ -11,7 +12,8 @@ import (
 
 type deliveryRepository interface {
 	Create(ctx context.Context, del *delivery.AssignCreate) (*delivery.Delivery, error)
-	Delete(ctx context.Context, orderID delivery.OrderID) (*delivery.Delivery, error)
+	Delete(ctx context.Context, orderID order.OrderID) (*delivery.Delivery, error)
+	Get(ctx context.Context, orderID order.OrderID) (*delivery.Delivery, error)
 }
 
 type courierRepository interface {
@@ -31,4 +33,26 @@ type timeCalculatorFactory interface {
 
 type TimeCalculator interface {
 	Calculate() time.Time
+}
+
+type Executor interface {
+	Execute(ctx context.Context, orderID order.OrderID) error
+}
+
+type deliveryExecutor interface {
+	Assign(ctx context.Context, orderID order.OrderID) (*delivery.AssignResult, error)
+	Unassign(ctx context.Context, orderID order.OrderID) (*delivery.UnassignResult, error)
+	Complete(ctx context.Context, orderID order.OrderID) (*delivery.CompleteResult, error)
+}
+
+type deliveryAssign interface {
+	Assign(ctx context.Context, orderID order.OrderID) (*delivery.AssignResult, error)
+}
+
+type deliveryUnassign interface {
+	Unassign(ctx context.Context, orderID order.OrderID) (*delivery.UnassignResult, error)
+}
+
+type deliveryComplete interface {
+	Complete(ctx context.Context, orderID order.OrderID) (*delivery.CompleteResult, error)
 }

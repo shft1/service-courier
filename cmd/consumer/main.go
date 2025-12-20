@@ -1,0 +1,92 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"os/signal"
+	"service-courier/internal/config/consumercfg"
+	"service-courier/internal/config/dbcfg"
+	"service-courier/internal/db/postgre"
+	"service-courier/internal/gateway/grpc/ordergrpc"
+	"service-courier/internal/gateway/kafka/orderkafka"
+	"service-courier/internal/handler/kafka/orderhandler"
+	"service-courier/internal/proto/orderpb"
+	"service-courier/internal/repository/courierdb"
+	"service-courier/internal/repository/deliverydb"
+	"service-courier/internal/service/deliveryapp"
+	"syscall"
+
+	"github.com/joho/godotenv"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+)
+
+func main() {
+	// Инициализация основного контекста
+	sysCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	// Загрузка env переменных в окружение
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Error loading .env file")
+	}
+	// Инициализация env переменных базы данных
+	dbEnv := dbcfg.SetupDataBaseEnv()
+
+	// Инициализация env переменных консьюмера
+	consumEnv := consumercfg.SetupConsumerEnv()
+
+	// Инициализация пула соединений с БД
+	pool := postgre.InitPool(sysCtx, dbEnv)
+	defer pool.Close()
+
+	// Инициализация менеджера транзакций
+	txManager := postgre.NewTxManagerPostgre(pool)
+
+	// Инициализация фабрики времени
+	timeFactory := deliveryapp.NewFactoryTimeCalculator()
+
+	// Инициализация репозитория курьера
+	courDB := courierdb.NewCourierRepository(pool, txManager)
+
+	// Инициализация сервиса доставок
+	delDB := deliverydb.NewDeliveryRepository(pool, txManager)
+	delApp := deliveryapp.NewDeliveryService(delDB, courDB, timeFactory, txManager)
+
+	// Инициализация фабрики бизнес-операций
+	eventFactory := deliveryapp.NewFactoryEventStrategy(delApp)
+
+	// Инициализация gRPC соединения
+	grpcServer := fmt.Sprintf("%v:%v", consumEnv.OrderHost, consumEnv.OrderPort)
+	conn, err := grpc.NewClient(grpcServer, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		fmt.Println("failed to connect to gRPC server", err)
+		return
+	}
+	defer conn.Close()
+
+	// Инициализация gRPC клиента
+	clientPB := orderpb.NewOrdersServiceClient(conn)
+	orderGW := ordergrpc.NewGateway(clientPB)
+
+	// Инициализация обработчика Kafka
+	handler := orderhandler.NewConsumeHandler(orderGW, eventFactory)
+
+	// Инициализация Kafka клиента
+	kafkaClient, err := orderkafka.NewKafkaClient(consumEnv, handler, []string{consumEnv.KafkaTopic})
+	if err != nil {
+		fmt.Printf("error to init new kafka client: %v\n", err)
+		return
+	}
+	defer kafkaClient.Close()
+
+	// Запуск консьюминга Kafka
+	go kafkaClient.Consume(sysCtx)
+
+	fmt.Println("start consuming")
+
+	// Ожидание отмены контекста
+	<-sysCtx.Done()
+
+	fmt.Println("stopped consuming")
+}

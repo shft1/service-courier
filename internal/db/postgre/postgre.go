@@ -3,7 +3,7 @@ package postgre
 import (
 	"context"
 	"fmt"
-	"service-courier/internal/config"
+	"service-courier/internal/config/dbcfg"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,7 +23,7 @@ func pingWithRetry(ctx context.Context, pool *pgxpool.Pool) error {
 }
 
 // InitPool - создание пула соединений с БД
-func InitPool(ctx context.Context, env *config.Env) *pgxpool.Pool {
+func InitPool(ctx context.Context, env *dbcfg.DataBaseEnv) *pgxpool.Pool {
 	connString := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		env.DBUser,

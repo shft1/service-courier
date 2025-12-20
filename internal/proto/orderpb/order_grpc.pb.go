@@ -4,15 +4,14 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v6.33.1
-// source: order/order.proto
+// source: orderpb/order.proto
 
 // Пакет для определённых сущностей и служб
 
-package order
+package orderpb
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -164,5 +163,5 @@ var OrdersService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "order/order.proto",
+	Metadata: "orderpb/order.proto",
 }

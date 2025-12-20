@@ -13,11 +13,6 @@ type Delivery struct {
 	Deadline   time.Time
 }
 
-// OrderID - объект ID заказа
-type OrderID struct {
-	OrderID string
-}
-
 // AssignResult - объект успешного создания доставки
 type AssignResult struct {
 	CourierID     int64
@@ -35,6 +30,13 @@ type UnassignResult struct {
 
 // AssignCreate - объект создания доставки
 type AssignCreate struct {
+	CourierID int64
+	OrderID   string
+	Deadline  time.Time
+}
+
+// CompleteResult - объект успешного выполнения доставки
+type CompleteResult struct {
 	CourierID int64
 	OrderID   string
 	Deadline  time.Time

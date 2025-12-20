@@ -1,19 +1,19 @@
-package worker
+package orderworker
 
 import (
 	"context"
 	"fmt"
 	"service-courier/internal/domain/delivery"
-	"service-courier/internal/gateway/order"
+	"service-courier/internal/domain/order"
 	"time"
 )
 
 type gateway interface {
-	GetOrders(ctx context.Context, cursor time.Time) ([]*order.OrderResponse, error)
+	GetOrders(ctx context.Context, cursor time.Time) ([]*order.Order, error)
 }
 
 type assigner interface {
-	Assign(ctx context.Context, orderID delivery.OrderID) (*delivery.AssignResult, error)
+	Assign(ctx context.Context, orderID order.OrderID) (*delivery.AssignResult, error)
 }
 
 // orderPoller - фоновый воркер получения и назначения заказов
@@ -62,7 +62,7 @@ func (op *orderPoller) processTick(ctx context.Context) {
 	}
 }
 
-func (op *orderPoller) fetch(ctx context.Context) ([]*order.OrderResponse, error) {
+func (op *orderPoller) fetch(ctx context.Context) ([]*order.Order, error) {
 	out, err := op.gateway.GetOrders(ctx, op.cursor)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get orders: %w", err)
@@ -70,14 +70,14 @@ func (op *orderPoller) fetch(ctx context.Context) ([]*order.OrderResponse, error
 	return out, nil
 }
 
-func (op *orderPoller) assignDeliveries(ctx context.Context, ords []*order.OrderResponse) error {
-	for _, order := range ords {
-		fmt.Printf("delivery on order '%s' is planning...\n", order.OrderID)
-		del, err := op.assigner.Assign(ctx, delivery.OrderID{OrderID: order.OrderID})
+func (op *orderPoller) assignDeliveries(ctx context.Context, ords []*order.Order) error {
+	for _, ord := range ords {
+		fmt.Printf("delivery on order '%s' is planning...\n", ord.OrderID)
+		del, err := op.assigner.Assign(ctx, order.OrderID{OrderID: ord.OrderID})
 		if err != nil {
-			op.cursor = order.CreatedAt
+			op.cursor = ord.CreatedAt
 			fmt.Printf("cursor updated: %s\n", op.cursor.Format("2006-01-02 15:04:05"))
-			return fmt.Errorf("failed to plan delivery on order '%s': %w", order.OrderID, err)
+			return fmt.Errorf("failed to plan delivery on order '%s': %w", ord.OrderID, err)
 		}
 		fmt.Printf("delivery on order '%s' is plan!\n", del.OrderID)
 	}

@@ -6,25 +6,23 @@ import (
 	"os"
 	"os/signal"
 	"service-courier/internal/cli"
-	"service-courier/internal/config"
+	"service-courier/internal/config/appcfg"
+	"service-courier/internal/config/dbcfg"
 	"service-courier/internal/db/postgre"
-	"service-courier/internal/gateway/order"
 	"service-courier/internal/handler/courierhttp"
 	"service-courier/internal/handler/deliveryhttp"
 	"service-courier/internal/handler/healthhttp"
-	orderPB "service-courier/internal/proto/order"
 	"service-courier/internal/repository/courierdb"
 	"service-courier/internal/repository/deliverydb"
 	"service-courier/internal/router"
 	"service-courier/internal/server"
 	"service-courier/internal/service/courierapp"
 	"service-courier/internal/service/deliveryapp"
-	"service-courier/internal/worker"
+	"service-courier/internal/worker/deliveryworker"
 	"syscall"
 	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -32,11 +30,18 @@ func main() {
 	sysCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	// Инициализация env переменных
-	env := config.SetupEnv()
+	// Загрузка env переменных в окружение
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Error loading .env file")
+	}
+	// Инициализация env переменных приложения
+	appEnv := appcfg.SetupAppEnv()
+
+	// Инициализация env переменных базы данных
+	dbEnv := dbcfg.SetupDataBaseEnv()
 
 	// Инициализация пула соединений с БД
-	pool := postgre.InitPool(sysCtx, env)
+	pool := postgre.InitPool(sysCtx, dbEnv)
 	defer pool.Close()
 
 	// Инициализация менеджера транзакций
@@ -50,7 +55,7 @@ func main() {
 	courApp := courierapp.NewCourierService(courDB)
 	courHTTP := courierhttp.NewCourierHandler(courApp)
 
-	// Инициализация фабрики
+	// Инициализация фабрики времени
 	timeFactory := deliveryapp.NewFactoryTimeCalculator()
 
 	// Инициализация логики доставок
@@ -61,42 +66,44 @@ func main() {
 	// Регистрация адресов на обработчиков
 	router := router.SetupRoute(healthHTTP, courHTTP, delHTTP)
 
-	// Инициализация gRPC
-	conn, err := grpc.NewClient(env.OrderPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		fmt.Println("failed to connect to gRPC server", err)
-	}
-	defer conn.Close()
+	// [Note] - Работа с заказами происходит через Kafka
+	// // Инициализация gRPC соединения
+	// conn, err := grpc.NewClient(appEnv.OrderPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// if err != nil {
+	// 	fmt.Println("failed to connect to gRPC server", err)
+	// }
+	// defer conn.Close()
 
-	clientPB := orderPB.NewOrdersServiceClient(conn)
-	orderGW := order.NewGateway(clientPB)
+	// Инициализация gRPC клиента
+	// clientPB := orderpb.NewOrdersServiceClient(conn)
+	// orderGW := ordergrpc.NewGateway(clientPB)
 
-	// Инициализация фонового воркера получения и назначения заказов
-	pollPeriod, err := time.ParseDuration(env.TimePoll)
-	if err != nil {
-		fmt.Println("error parsing time poll period:", err)
-		pollPeriod = time.Second * 10
-	}
-	orderPoller := worker.NewOrderPoller(pollPeriod, orderGW, delApp)
+	// // Инициализация фонового воркера получения и назначения заказов
+	// pollPeriod, err := time.ParseDuration(appEnv.TimePoll)
+	// if err != nil {
+	// 	fmt.Println("error parsing time poll period:", err)
+	// 	pollPeriod = time.Second * 10
+	// }
+	// orderPoller := orderworker.NewOrderPoller(pollPeriod, orderGW, delApp)
 
-	go orderPoller.Start(sysCtx)
+	// go orderPoller.Start(sysCtx)
 
 	// Инициализация фонового воркера проверки доставок
-	checkPeriod, err := time.ParseDuration(env.TimeCheck)
+	checkPeriod, err := time.ParseDuration(appEnv.TimeCheck)
 	if err != nil {
 		fmt.Println("error parsing time check duration:", err)
 		checkPeriod = time.Second * 10
 	}
-	deliveryChecker := worker.NewDeliveryMonitor(checkPeriod, delApp)
+	deliveryChecker := deliveryworker.NewDeliveryMonitor(checkPeriod, delApp)
 
+	// Запуск фоновой проверки доставок
 	go deliveryChecker.Start(sysCtx)
 
 	// Парсинг командной строки
-	cmd := cli.CliHandler(env)
+	cmd := cli.CliHandler(appEnv)
 	if err := cmd.Run(sysCtx, os.Args); err != nil {
 		fmt.Println(err)
 	}
-
 	// Запуск сервера через graceful shutdown
-	server.StartServerGraceful(sysCtx, router, pool, env)
+	server.StartServerGraceful(sysCtx, router, pool, appEnv)
 }

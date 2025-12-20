@@ -3,6 +3,7 @@ package deliveryapp
 import (
 	"context"
 	"service-courier/internal/domain/delivery"
+	"service-courier/internal/domain/order"
 )
 
 // deliveryService - сервис доставки
@@ -24,7 +25,7 @@ func NewDeliveryService(dr deliveryRepository, cr courierRepository, factory tim
 }
 
 // Assign - создает доставку на свободного курьера
-func (ds *deliveryService) Assign(ctx context.Context, orderID delivery.OrderID) (*delivery.AssignResult, error) {
+func (ds *deliveryService) Assign(ctx context.Context, orderID order.OrderID) (*delivery.AssignResult, error) {
 	var assignRes *delivery.AssignResult
 
 	err := ds.txManager.Do(ctx, func(ctx context.Context) error {
@@ -39,7 +40,7 @@ func (ds *deliveryService) Assign(ctx context.Context, orderID delivery.OrderID)
 }
 
 // doAssign - вспомогательная функция для Assign
-func (ds *deliveryService) doAssign(ctx context.Context, orderID delivery.OrderID) (*delivery.AssignResult, error) {
+func (ds *deliveryService) doAssign(ctx context.Context, orderID order.OrderID) (*delivery.AssignResult, error) {
 	var assignRes delivery.AssignResult
 	var assignCreate delivery.AssignCreate
 
@@ -71,7 +72,7 @@ func (ds *deliveryService) doAssign(ctx context.Context, orderID delivery.OrderI
 }
 
 // Unassign - удаляет доставку и освобождает соответствующего курьера
-func (ds *deliveryService) Unassign(ctx context.Context, orderID delivery.OrderID) (*delivery.UnassignResult, error) {
+func (ds *deliveryService) Unassign(ctx context.Context, orderID order.OrderID) (*delivery.UnassignResult, error) {
 	var unassignRes *delivery.UnassignResult
 
 	err := ds.txManager.Do(ctx, func(ctx context.Context) error {
@@ -86,7 +87,7 @@ func (ds *deliveryService) Unassign(ctx context.Context, orderID delivery.OrderI
 }
 
 // doUnassign - вспомогательная функция для Unassign
-func (ds *deliveryService) doUnassign(ctx context.Context, orderID delivery.OrderID) (*delivery.UnassignResult, error) {
+func (ds *deliveryService) doUnassign(ctx context.Context, orderID order.OrderID) (*delivery.UnassignResult, error) {
 	var unassignRes delivery.UnassignResult
 
 	del, err := ds.deliveryRepo.Delete(ctx, orderID)
@@ -101,6 +102,40 @@ func (ds *deliveryService) doUnassign(ctx context.Context, orderID delivery.Orde
 	unassignRes.CourierID = del.CourierID
 
 	return &unassignRes, nil
+}
+
+// Complete - отмечает доставку как выполненную, освобождает соответствующего курьера
+func (ds *deliveryService) Complete(ctx context.Context, orderID order.OrderID) (*delivery.CompleteResult, error) {
+	var completeRes *delivery.CompleteResult
+
+	err := ds.txManager.Do(ctx, func(ctx context.Context) error {
+		res, err := ds.doComplete(ctx, orderID)
+		completeRes = res
+		return err
+	})
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return completeRes, nil
+}
+
+// doComplete - вспомогательная функция для Complete
+func (ds *deliveryService) doComplete(ctx context.Context, orderID order.OrderID) (*delivery.CompleteResult, error) {
+	var completeRes delivery.CompleteResult
+
+	del, err := ds.deliveryRepo.Get(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+	courID, err := ds.courierRepo.SetAvailable(ctx, del.CourierID)
+	if err != nil {
+		return nil, err
+	}
+	completeRes.CourierID = courID
+	completeRes.OrderID = del.OrderID
+	completeRes.Deadline = del.Deadline
+
+	return &completeRes, nil
 }
 
 // CheckDelivery - проверяет состояние доставок

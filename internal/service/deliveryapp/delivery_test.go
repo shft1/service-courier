@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"service-courier/internal/domain/courier"
 	"service-courier/internal/domain/delivery"
+	"service-courier/internal/domain/order"
 	"service-courier/internal/service/deliveryapp"
 	"testing"
 	"time"
@@ -30,7 +31,7 @@ func TestDeliveryService_Assign(t *testing.T) {
 		cRepoSbErr error
 		srvExpErr  error
 		srvExp     *delivery.AssignResult
-		input      delivery.OrderID
+		input      order.OrderID
 	}{
 		{
 			"busy couriers",
@@ -41,7 +42,7 @@ func TestDeliveryService_Assign(t *testing.T) {
 			nil,
 			delivery.ErrDeliveryNotAvailableCourier,
 			nil,
-			delivery.OrderID{},
+			order.OrderID{},
 		},
 		{
 			"delivery exist",
@@ -52,7 +53,7 @@ func TestDeliveryService_Assign(t *testing.T) {
 			nil,
 			delivery.ErrDeliveryExist,
 			nil,
-			delivery.OrderID{},
+			order.OrderID{},
 		},
 		{
 			"unknown error from create_delivery",
@@ -63,7 +64,7 @@ func TestDeliveryService_Assign(t *testing.T) {
 			nil,
 			nil,
 			nil,
-			delivery.OrderID{},
+			order.OrderID{},
 		},
 		{
 			"unknown error from set_busy",
@@ -74,7 +75,7 @@ func TestDeliveryService_Assign(t *testing.T) {
 			fmt.Errorf("some unknown wrapped error from repo"),
 			nil,
 			nil,
-			delivery.OrderID{},
+			order.OrderID{},
 		},
 		{
 			"courier not found",
@@ -85,7 +86,7 @@ func TestDeliveryService_Assign(t *testing.T) {
 			courier.ErrCourierNotFound,
 			delivery.ErrDeliveryCourierLost,
 			nil,
-			delivery.OrderID{},
+			order.OrderID{},
 		},
 		{
 			"valid",
@@ -113,7 +114,7 @@ func TestDeliveryService_Assign(t *testing.T) {
 				TransportType: "scooter",
 				Deadline:      func() time.Time { res, _ := time.Parse("2006-01-02 15:04:05", "2025-01-01 00:00:00"); return res }(),
 			},
-			delivery.OrderID{},
+			order.OrderID{},
 		},
 	}
 
@@ -246,7 +247,7 @@ func TestDeliveryService_Unassign(t *testing.T) {
 				})
 			ctx := context.Background()
 			s := deliveryapp.NewDeliveryService(md, mc, mfac, mtx)
-			res, err := s.Unassign(ctx, delivery.OrderID{})
+			res, err := s.Unassign(ctx, order.OrderID{})
 
 			assert.Equal(t, tt.srvExp, res)
 			if err != nil && tt.srvExpErr == nil {
