@@ -19,6 +19,7 @@ type Middleware func(http.Handler) http.Handler
 
 // SetupRoute - регистрирует эндпоинты и middleware в роутере
 func SetupRoute(
+	loggerMW Middleware,
 	metricsMW Middleware,
 	hHand *healthhttp.HealthHandler,
 	cHand *courierhttp.CourierHandler,
@@ -27,6 +28,7 @@ func SetupRoute(
 ) chi.Router {
 	mainRouter := chi.NewRouter()
 
+	mainRouter.Use(loggerMW)
 	mainRouter.Use(metricsMW)
 
 	healthroute.HealthRoute(mainRouter, hHand)

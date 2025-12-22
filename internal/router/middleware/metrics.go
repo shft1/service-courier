@@ -8,7 +8,7 @@ import (
 )
 
 
-func NewMetricsMiddleware(m *metrics.HTTPMetrics) func (next http.Handler) http.Handler {
+func NewMetricsMiddleware(m *metrics.HTTPMetrics) func(http.Handler) http.Handler {
 	return func (next http.Handler) http.Handler {
 		return http.HandlerFunc(
 			func (w http.ResponseWriter, r *http.Request) {
@@ -26,15 +26,4 @@ func NewMetricsMiddleware(m *metrics.HTTPMetrics) func (next http.Handler) http.
 			},
 		)
 	}
-}
-
-
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-func (rw *responseWriter) WriteHeader(statusCode int) {
-	rw.statusCode = statusCode
-	rw.ResponseWriter.WriteHeader(statusCode)
 }

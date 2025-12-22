@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"service-courier/internal/cli"
@@ -20,6 +21,7 @@ import (
 	"service-courier/internal/service/courierapp"
 	"service-courier/internal/service/deliveryapp"
 	"service-courier/internal/worker/deliveryworker"
+	"service-courier/observability/logger"
 	"service-courier/observability/metrics"
 	"syscall"
 	"time"
@@ -66,6 +68,16 @@ func main() {
 	delApp := deliveryapp.NewDeliveryService(delDB, courDB, timeFactory, txManager)
 	delHTTP := deliveryhttp.NewDeliveryHandler(delApp)
 
+	// Инициализация логгера 
+	logger, err := logger.NewZapAdapter()
+	if err != nil {
+		log.Printf("failed to init logger: %v", err)
+	}
+	defer logger.Sync()
+
+	// Инициализация Middleware логгирования
+	loggerMW := middleware.NewLoggerMiddleware(logger)
+
 	// Инициализация метрик
 	metrics := metrics.NewHTTPMetrics()
 
@@ -76,7 +88,7 @@ func main() {
 	metricsHTTP := promhttp.Handler().ServeHTTP
 
 	// Регистрация адресов и middleware
-	router := router.SetupRoute(metricsMW, healthHTTP, courHTTP, delHTTP, metricsHTTP)
+	router := router.SetupRoute(loggerMW, metricsMW, healthHTTP, courHTTP, delHTTP, metricsHTTP)
 
 	// [Note] - Работа с заказами происходит через Kafka
 	// // Инициализация gRPC соединения
