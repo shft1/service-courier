@@ -4,18 +4,20 @@ import (
 	"context"
 	"fmt"
 	"service-courier/internal/config/consumercfg"
+	"service-courier/observability/logger"
 	"time"
 
 	"github.com/IBM/sarama"
 )
 
 type kafkaClient struct {
+	log logger.Logger
 	client  sarama.ConsumerGroup
 	handler consumerHandler
 	topics  []string
 }
 
-func NewKafkaClient(env *consumercfg.ConsumerEnv, handler consumerHandler, topics []string) (*kafkaClient, error) {
+func NewKafkaClient(log logger.Logger, env *consumercfg.ConsumerEnv, handler consumerHandler, topics []string) (*kafkaClient, error) {
 	config := sarama.NewConfig()
 	config.Version = sarama.V2_1_0_0
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
@@ -29,14 +31,14 @@ func NewKafkaClient(env *consumercfg.ConsumerEnv, handler consumerHandler, topic
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("kafka client successfully created")
-	return &kafkaClient{client: client, handler: handler, topics: topics}, nil
+	log.Info("kafka client successfully created")
+	return &kafkaClient{log: log, client: client, handler: handler, topics: topics}, nil
 }
 
 func (kc *kafkaClient) Consume(ctx context.Context) {
 	for {
 		if err := kc.client.Consume(ctx, kc.topics, kc.handler); err != nil {
-			fmt.Printf("consume error: %v\n", err)
+			kc.log.Error("kafka consume error", logger.NewField("error", err))
 		}
 		if ctx.Err() != nil {
 			return
@@ -46,7 +48,7 @@ func (kc *kafkaClient) Consume(ctx context.Context) {
 }
 
 func (kc *kafkaClient) Close() {
-	fmt.Println("closing kafka client...")
+	kc.log.Info("closing kafka client...")
 	kc.client.Close()
-	fmt.Println("kafka client closed")
+	kc.log.Info("kafka client closed")
 }

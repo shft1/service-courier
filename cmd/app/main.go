@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -35,9 +34,16 @@ func main() {
 	sysCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
+	// Инициализация логгера 
+	zlog, err := logger.NewZapAdapter()
+	if err != nil {
+		log.Printf("failed to init logger: %v", err)
+	}
+	defer zlog.Sync()
+
 	// Загрузка env переменных в окружение
 	if err := godotenv.Load(); err != nil {
-		fmt.Println("Error loading .env file")
+		zlog.Error("Error loading .env file")
 	}
 	// Инициализация env переменных приложения
 	appEnv := appcfg.SetupAppEnv()
@@ -46,7 +52,7 @@ func main() {
 	dbEnv := dbcfg.SetupDataBaseEnv()
 
 	// Инициализация пула соединений с БД
-	pool := postgre.InitPool(sysCtx, dbEnv)
+	pool := postgre.InitPool(sysCtx, zlog, dbEnv)
 	defer pool.Close()
 
 	// Инициализация менеджера транзакций
@@ -68,15 +74,8 @@ func main() {
 	delApp := deliveryapp.NewDeliveryService(delDB, courDB, timeFactory, txManager)
 	delHTTP := deliveryhttp.NewDeliveryHandler(delApp)
 
-	// Инициализация логгера 
-	logger, err := logger.NewZapAdapter()
-	if err != nil {
-		log.Printf("failed to init logger: %v", err)
-	}
-	defer logger.Sync()
-
 	// Инициализация Middleware логгирования
-	loggerMW := middleware.NewLoggerMiddleware(logger)
+	loggerMW := middleware.NewLoggerMiddleware(zlog)
 
 	// Инициализация метрик
 	metrics := metrics.NewHTTPMetrics()
@@ -90,35 +89,35 @@ func main() {
 	// Регистрация адресов и middleware
 	router := router.SetupRoute(loggerMW, metricsMW, healthHTTP, courHTTP, delHTTP, metricsHTTP)
 
-	// [Note] - Работа с заказами происходит через Kafka
+	// // [Note] - Работа с заказами происходит через Kafka
 	// // Инициализация gRPC соединения
 	// conn, err := grpc.NewClient(appEnv.OrderPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	// if err != nil {
-	// 	fmt.Println("failed to connect to gRPC server", err)
+	// 	zlog.Error("failed to connect to gRPC server", logger.NewField("error", err))
 	// }
 	// defer conn.Close()
 
-	// Инициализация gRPC клиента
+	// // Инициализация gRPC клиента
 	// clientPB := orderpb.NewOrdersServiceClient(conn)
 	// orderGW := ordergrpc.NewGateway(clientPB)
 
 	// // Инициализация фонового воркера получения и назначения заказов
 	// pollPeriod, err := time.ParseDuration(appEnv.TimePoll)
 	// if err != nil {
-	// 	fmt.Println("error parsing time poll period:", err)
+	// 	zlog.Warn("failed to parse duration", logger.NewField("error", err))
 	// 	pollPeriod = time.Second * 10
 	// }
-	// orderPoller := orderworker.NewOrderPoller(pollPeriod, orderGW, delApp)
+	// orderPoller := orderworker.NewOrderPoller(zlog, pollPeriod, orderGW, delApp)
 
 	// go orderPoller.Start(sysCtx)
 
 	// Инициализация фонового воркера проверки доставок
 	checkPeriod, err := time.ParseDuration(appEnv.TimeCheck)
 	if err != nil {
-		fmt.Println("error parsing time check duration:", err)
+		zlog.Warn("failed to parse duration", logger.NewField("error", err))
 		checkPeriod = time.Second * 10
 	}
-	deliveryChecker := deliveryworker.NewDeliveryMonitor(checkPeriod, delApp)
+	deliveryChecker := deliveryworker.NewDeliveryMonitor(zlog, checkPeriod, delApp)
 
 	// Запуск фоновой проверки доставок
 	go deliveryChecker.Start(sysCtx)
@@ -126,8 +125,8 @@ func main() {
 	// Парсинг командной строки
 	cmd := cli.CliHandler(appEnv)
 	if err := cmd.Run(sysCtx, os.Args); err != nil {
-		fmt.Println(err)
+		zlog.Error("failed to parse cli command", logger.NewField("error", err))
 	}
 	// Запуск сервера через graceful shutdown
-	server.StartServerGraceful(sysCtx, router, pool, appEnv)
+	server.StartServerGraceful(zlog, sysCtx, router, pool, appEnv)
 }

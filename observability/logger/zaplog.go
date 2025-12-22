@@ -15,7 +15,8 @@ func NewZapAdapter() (*ZapAdapter, error) {
 	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006/01/02 15:04:05")
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	config.EncoderConfig.EncodeDuration = zapcore.StringDurationEncoder
-	config.EncoderConfig.CallerKey = ""
+	config.DisableCaller = true
+	config.DisableStacktrace = true
 
 	zapLogger, err := config.Build()
 

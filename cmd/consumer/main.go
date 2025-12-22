@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os/signal"
 	"service-courier/internal/config/consumercfg"
 	"service-courier/internal/config/dbcfg"
@@ -14,6 +15,7 @@ import (
 	"service-courier/internal/repository/courierdb"
 	"service-courier/internal/repository/deliverydb"
 	"service-courier/internal/service/deliveryapp"
+	"service-courier/observability/logger"
 	"syscall"
 
 	"github.com/joho/godotenv"
@@ -26,9 +28,16 @@ func main() {
 	sysCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
+	// Инициализация логгера 
+	zlog, err := logger.NewZapAdapter()
+	if err != nil {
+		log.Printf("failed to init logger: %v", err)
+	}
+	defer zlog.Sync()
+
 	// Загрузка env переменных в окружение
 	if err := godotenv.Load(); err != nil {
-		fmt.Println("Error loading .env file")
+		zlog.Error("Error loading .env file")
 	}
 	// Инициализация env переменных базы данных
 	dbEnv := dbcfg.SetupDataBaseEnv()
@@ -37,7 +46,7 @@ func main() {
 	consumEnv := consumercfg.SetupConsumerEnv()
 
 	// Инициализация пула соединений с БД
-	pool := postgre.InitPool(sysCtx, dbEnv)
+	pool := postgre.InitPool(sysCtx, zlog, dbEnv)
 	defer pool.Close()
 
 	// Инициализация менеджера транзакций
@@ -60,7 +69,7 @@ func main() {
 	grpcServer := fmt.Sprintf("%v:%v", consumEnv.OrderHost, consumEnv.OrderPort)
 	conn, err := grpc.NewClient(grpcServer, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		fmt.Println("failed to connect to gRPC server", err)
+		zlog.Error("failed to connect to gRPC server", logger.NewField("error", err))
 		return
 	}
 	defer conn.Close()
@@ -70,12 +79,12 @@ func main() {
 	orderGW := ordergrpc.NewGateway(clientPB)
 
 	// Инициализация обработчика Kafka
-	handler := orderhandler.NewConsumeHandler(orderGW, eventFactory)
+	handler := orderhandler.NewConsumeHandler(zlog, orderGW, eventFactory)
 
 	// Инициализация Kafka клиента
-	kafkaClient, err := orderkafka.NewKafkaClient(consumEnv, handler, []string{consumEnv.KafkaTopic})
+	kafkaClient, err := orderkafka.NewKafkaClient(zlog, consumEnv, handler, []string{consumEnv.KafkaTopic})
 	if err != nil {
-		fmt.Printf("error to init new kafka client: %v\n", err)
+		zlog.Error("failed to create Kafka client", logger.NewField("error", err))
 		return
 	}
 	defer kafkaClient.Close()
@@ -83,10 +92,10 @@ func main() {
 	// Запуск консьюминга Kafka
 	go kafkaClient.Consume(sysCtx)
 
-	fmt.Println("start consuming")
+	zlog.Info("start kafka consuming")
 
 	// Ожидание отмены контекста
 	<-sysCtx.Done()
 
-	fmt.Println("stopped consuming")
+	zlog.Info("stopped kafka consuming")
 }

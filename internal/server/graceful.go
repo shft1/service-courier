@@ -2,9 +2,9 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"service-courier/internal/config/appcfg"
+	"service-courier/observability/logger"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -12,11 +12,11 @@ import (
 )
 
 // StartServerGraceful - запуск сервера через graceful shutdown
-func StartServerGraceful(ctx context.Context, r chi.Router, pool *pgxpool.Pool, env *appcfg.AppEnv) {
+func StartServerGraceful(log logger.Logger, ctx context.Context, r chi.Router, pool *pgxpool.Pool, env *appcfg.AppEnv) {
 	srv := &http.Server{Addr: "0.0.0.0:" + env.AppPort, Handler: r}
 
 	srv.RegisterOnShutdown(func() {
-		fmt.Println("Shutting down service-courier")
+		log.Info("Shutting down service-courier...")
 	})
 
 	go srv.ListenAndServe()
@@ -27,6 +27,8 @@ func StartServerGraceful(ctx context.Context, r chi.Router, pool *pgxpool.Pool, 
 	defer cancel()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		fmt.Println(err)
+		log.Error("failed to shutdown service-courier", logger.NewField("error", err))
+		return
 	}
+	log.Info("service-courier successfully stopped")
 }

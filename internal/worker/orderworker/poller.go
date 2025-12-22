@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"service-courier/internal/domain/delivery"
 	"service-courier/internal/domain/order"
+	"service-courier/observability/logger"
 	"time"
 )
 
@@ -18,14 +19,16 @@ type assigner interface {
 
 // orderPoller - фоновый воркер получения и назначения заказов
 type orderPoller struct {
+	log logger.Logger
 	cursor   time.Time
 	period   time.Duration
 	gateway  gateway
 	assigner assigner
 }
 
-func NewOrderPoller(p time.Duration, gw gateway, as assigner) *orderPoller {
+func NewOrderPoller(log logger.Logger, p time.Duration, gw gateway, as assigner) *orderPoller {
 	return &orderPoller{
+		log: log,
 		cursor:   time.Now().Add(-5 * time.Second),
 		period:   p,
 		gateway:  gw,
@@ -42,7 +45,7 @@ func (op *orderPoller) Start(ctx context.Context) {
 		select {
 		case <-ticker.C:
 			op.processTick(ctx)
-			fmt.Println("order polled")
+			op.log.Info("order polled")
 		case <-ctx.Done():
 			op.stop()
 			return
@@ -53,11 +56,11 @@ func (op *orderPoller) Start(ctx context.Context) {
 func (op *orderPoller) processTick(ctx context.Context) {
 	orders, err := op.fetch(ctx)
 	if err != nil {
-		fmt.Println(err.Error())
+		op.log.Error("failed to fetch orders", logger.NewField("error", err))
 		return
 	}
 	if err := op.assignDeliveries(ctx, orders); err != nil {
-		fmt.Println(err.Error())
+		op.log.Error("failed to fetch orders", logger.NewField("error", err))
 		return
 	}
 }
@@ -72,20 +75,20 @@ func (op *orderPoller) fetch(ctx context.Context) ([]*order.Order, error) {
 
 func (op *orderPoller) assignDeliveries(ctx context.Context, ords []*order.Order) error {
 	for _, ord := range ords {
-		fmt.Printf("delivery on order '%s' is planning...\n", ord.OrderID)
+		op.log.Info("planning delivery on order...", logger.NewField("order_id", ord.OrderID))
 		del, err := op.assigner.Assign(ctx, order.OrderID{OrderID: ord.OrderID})
 		if err != nil {
 			op.cursor = ord.CreatedAt
-			fmt.Printf("cursor updated: %s\n", op.cursor.Format("2006-01-02 15:04:05"))
+			op.log.Debug("order cursor was updated", logger.NewField("cursor", op.cursor))
 			return fmt.Errorf("failed to plan delivery on order '%s': %w", ord.OrderID, err)
 		}
-		fmt.Printf("delivery on order '%s' is plan!\n", del.OrderID)
+		op.log.Info("successfully plan delivery on order", logger.NewField("order_id", del.OrderID))
 	}
 	op.cursor = time.Now()
-	fmt.Printf("cursor updated: %s\n", op.cursor.Format("2006-01-02 15:04:05"))
+	op.log.Debug("order cursor was updated", logger.NewField("cursor", op.cursor))
 	return nil
 }
 
 func (op *orderPoller) stop() {
-	fmt.Println("stop order polling")
+	op.log.Info("stop order polling")
 }
