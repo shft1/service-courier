@@ -15,14 +15,17 @@ import (
 	"service-courier/internal/repository/courierdb"
 	"service-courier/internal/repository/deliverydb"
 	"service-courier/internal/router"
+	"service-courier/internal/router/middleware"
 	"service-courier/internal/server"
 	"service-courier/internal/service/courierapp"
 	"service-courier/internal/service/deliveryapp"
 	"service-courier/internal/worker/deliveryworker"
+	"service-courier/observability/metrics"
 	"syscall"
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -63,8 +66,17 @@ func main() {
 	delApp := deliveryapp.NewDeliveryService(delDB, courDB, timeFactory, txManager)
 	delHTTP := deliveryhttp.NewDeliveryHandler(delApp)
 
-	// Регистрация адресов на обработчиков
-	router := router.SetupRoute(healthHTTP, courHTTP, delHTTP)
+	// Инициализация метрик
+	metrics := metrics.NewHTTPMetrics()
+
+	// Инициализация Middleware метрик
+	metricsMW := middleware.NewMetricsMiddleware(metrics)
+
+	// Инициализация обработчика метрик
+	metricsHTTP := promhttp.Handler().ServeHTTP
+
+	// Регистрация адресов и middleware
+	router := router.SetupRoute(metricsMW, healthHTTP, courHTTP, delHTTP, metricsHTTP)
 
 	// [Note] - Работа с заказами происходит через Kafka
 	// // Инициализация gRPC соединения

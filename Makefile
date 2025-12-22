@@ -13,6 +13,12 @@ up-consumer:
 down-consumer:
 	docker compose -f deploy/consumer/docker-compose.yml down
 
+up-observability:
+	docker compose -f deploy/observability/docker-compose.yml up -d
+
+down-observability:
+	docker compose -f deploy/observability/docker-compose.yml down
+
 up-infra:
 	docker compose -f ../infrastructure/docker-compose.yml up -d
 down-infra:
