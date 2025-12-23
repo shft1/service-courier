@@ -11,12 +11,14 @@ type deliveryChecker interface {
 	CheckDelivery(ctx context.Context) error
 }
 
+// deliveryMonitor - фоновый воркер проверки доставок
 type deliveryMonitor struct {
 	log logger.Logger
 	period time.Duration
 	checker deliveryChecker
 }
 
+// NewDeliveryMonitor - конструктор фонового воркера проверки доставок
 func NewDeliveryMonitor(log logger.Logger, period time.Duration, checker deliveryChecker) *deliveryMonitor {
 	return &deliveryMonitor{
 		log: log,

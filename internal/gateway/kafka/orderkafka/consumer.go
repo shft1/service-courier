@@ -10,6 +10,7 @@ import (
 	"github.com/IBM/sarama"
 )
 
+// kafkaClient - клиент Kafka
 type kafkaClient struct {
 	log logger.Logger
 	client  sarama.ConsumerGroup
@@ -17,6 +18,7 @@ type kafkaClient struct {
 	topics  []string
 }
 
+// NewKafkaClient - конструктор Kafka клиент
 func NewKafkaClient(log logger.Logger, env *consumercfg.ConsumerEnv, handler consumerHandler, topics []string) (*kafkaClient, error) {
 	config := sarama.NewConfig()
 	config.Version = sarama.V2_1_0_0
@@ -35,6 +37,7 @@ func NewKafkaClient(log logger.Logger, env *consumercfg.ConsumerEnv, handler con
 	return &kafkaClient{log: log, client: client, handler: handler, topics: topics}, nil
 }
 
+// Consume - запуск consuming Kafka
 func (kc *kafkaClient) Consume(ctx context.Context) {
 	for {
 		if err := kc.client.Consume(ctx, kc.topics, kc.handler); err != nil {
@@ -47,6 +50,7 @@ func (kc *kafkaClient) Consume(ctx context.Context) {
 	}
 }
 
+// Close - закрытие клиента Kafka
 func (kc *kafkaClient) Close() {
 	kc.log.Info("closing kafka client...")
 	kc.client.Close()

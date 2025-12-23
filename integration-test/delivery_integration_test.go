@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -27,6 +28,7 @@ import (
 	"service-courier/internal/repository/deliverydb"
 	"service-courier/internal/router/deliveryroute"
 	"service-courier/internal/service/deliveryapp"
+	"service-courier/observability/logger"
 )
 
 const (
@@ -48,6 +50,12 @@ type DeliveryTestSuite struct {
 func (s *DeliveryTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 
+	zlog, err := logger.NewZapAdapter()
+	if err != nil {
+		log.Printf("failed to init logger: %v", err)
+	}
+	defer zlog.Sync()
+
 	pg, err := postgres.Run(s.ctx,
 		"postgres:15",
 		postgres.WithDatabase("testDB"),
@@ -58,7 +66,7 @@ func (s *DeliveryTestSuite) SetupSuite() {
 
 	s.T().Cleanup(func() {
 		pg.Terminate(s.ctx)
-		fmt.Println("info: test-containter terminated")
+		zlog.Info("test-containter terminated")
 	})
 
 	dsn, err := pg.ConnectionString(s.ctx)
@@ -68,21 +76,21 @@ func (s *DeliveryTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	cfg.MaxConns = 1
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	pool, err := pgxpool.NewWithConfig(s.ctx, cfg)
 	s.Require().NoError(err)
 	s.pool = pool
 	s.T().Cleanup(func() {
 		pool.Close()
-		fmt.Println("info: pgxpool closed")
+		zlog.Info("test-pgxpool closed")
 	})
 
 	stdpool, err := sql.Open("pgx", dsn)
 	s.Require().NoError(err)
 	s.T().Cleanup(func() {
 		stdpool.Close()
-		fmt.Println("info: stdpool closed")
+		zlog.Info("test-stdpool closed")
 	})
 
 	err = goose.Up(stdpool, "../migrations")

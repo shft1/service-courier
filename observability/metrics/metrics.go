@@ -5,13 +5,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
-
+// HTTPMetrics - HTTP-метрики приложения
 type HTTPMetrics struct {
 	Request *prometheus.CounterVec
 	Duration *prometheus.HistogramVec
 }
 
-
+// NewHTTPMetrics - создание и регистрация HTTP-метрик приложения
 func NewHTTPMetrics() *HTTPMetrics {
 	return &HTTPMetrics{
 		Request: promauto.NewCounterVec(prometheus.CounterOpts{

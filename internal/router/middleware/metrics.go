@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-
+// NewMetricsMiddleware - конструктор Middleware для метрик
 func NewMetricsMiddleware(m *metrics.HTTPMetrics) func(http.Handler) http.Handler {
 	return func (next http.Handler) http.Handler {
 		return http.HandlerFunc(

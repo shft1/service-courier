@@ -19,7 +19,7 @@ func CliHandler(env *appcfg.AppEnv) *cli.Command {
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			if port := cmd.String("port"); port != "" {
-				os.Setenv("PORT", port)
+				os.Setenv("COURIER_LOCALPORT", port)
 				env.AppPort = port
 			}
 			return nil

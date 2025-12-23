@@ -29,6 +29,7 @@ func mapError(err error) (int, string) {
 	}
 }
 
+// writeResponse - подготовка и отправка ответа для клиента
 func writeResponse(w http.ResponseWriter, status int, data any, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {

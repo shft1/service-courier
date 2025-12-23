@@ -43,7 +43,7 @@ func main() {
 	dbEnv := dbcfg.SetupDataBaseEnv()
 
 	// Инициализация env переменных консьюмера
-	consumEnv := consumercfg.SetupConsumerEnv()
+	consumEnv := consumercfg.SetupConsumerEnv(zlog)
 
 	// Инициализация пула соединений с БД
 	pool := postgre.InitPool(sysCtx, zlog, dbEnv)

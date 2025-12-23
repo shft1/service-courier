@@ -6,7 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -26,6 +26,7 @@ import (
 	"service-courier/internal/repository/courierdb"
 	"service-courier/internal/router/courierroute"
 	"service-courier/internal/service/courierapp"
+	"service-courier/observability/logger"
 )
 
 const (
@@ -44,6 +45,12 @@ type CourierTestSuite struct {
 func (s *CourierTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 
+	zlog, err := logger.NewZapAdapter()
+	if err != nil {
+		log.Printf("failed to init logger: %v", err)
+	}
+	defer zlog.Sync()
+
 	pg, err := postgres.Run(s.ctx,
 		"postgres:15",
 		postgres.WithDatabase("testDB"),
@@ -54,7 +61,7 @@ func (s *CourierTestSuite) SetupSuite() {
 
 	s.T().Cleanup(func() {
 		pg.Terminate(s.ctx)
-		fmt.Println("info: test-containter terminated")
+		zlog.Info("test-containter terminated")
 	})
 
 	dsn, err := pg.ConnectionString(s.ctx)
@@ -64,21 +71,21 @@ func (s *CourierTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	cfg.MaxConns = 1
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	pool, err := pgxpool.NewWithConfig(s.ctx, cfg)
 	s.Require().NoError(err)
 	s.pool = pool
 	s.T().Cleanup(func() {
 		pool.Close()
-		fmt.Println("info: pgxpool closed")
+		zlog.Info("test-pgxpool closed")
 	})
 
 	stdpool, err := sql.Open("pgx", dsn)
 	s.Require().NoError(err)
 	s.T().Cleanup(func() {
 		stdpool.Close()
-		fmt.Println("info: stdpool closed")
+		zlog.Info("test-stdpool closed")
 	})
 
 	err = goose.Up(stdpool, "../migrations")
@@ -86,9 +93,11 @@ func (s *CourierTestSuite) SetupSuite() {
 
 	txManager := postgre.NewTxManagerPostgre(pool)
 
+	log, _ := logger.NewZapAdapter()
+
 	repo := courierdb.NewCourierRepository(pool, txManager)
 	srv := courierapp.NewCourierService(repo)
-	hand := courierhttp.NewCourierHandler(srv)
+	hand := courierhttp.NewCourierHandler(log, srv)
 	router := chi.NewRouter()
 	courierroute.CourierRoute(router, hand)
 

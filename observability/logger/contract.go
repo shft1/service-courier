@@ -1,6 +1,6 @@
 package logger
 
-
+// Logger - интерфейс логгера приложения
 type Logger interface {
 	Debug(msg string, fields ...Field)
 	Info(msg string, fields ...Field)

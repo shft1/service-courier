@@ -5,11 +5,12 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-
+// ZapAdapter - адаптер логгера zap под интерфейс приложения
 type ZapAdapter struct {
 	logger *zap.Logger
 }
 
+// NewZapAdapter - конструктор адаптера zap
 func NewZapAdapter() (*ZapAdapter, error) {
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006/01/02 15:04:05")

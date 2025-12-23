@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-
+// NewLoggerMiddleware - конструктор Middleware для логгирования
 func NewLoggerMiddleware(log logger.Logger) func(http.Handler) http.Handler {
 	return func (next http.Handler) http.Handler {
 		return http.HandlerFunc(

@@ -19,16 +19,17 @@ type assigner interface {
 
 // orderPoller - фоновый воркер получения и назначения заказов
 type orderPoller struct {
-	log logger.Logger
+	log      logger.Logger
 	cursor   time.Time
 	period   time.Duration
 	gateway  gateway
 	assigner assigner
 }
 
+// NewOrderPoller - конструктор фонового воркера получения и назначения заказов
 func NewOrderPoller(log logger.Logger, p time.Duration, gw gateway, as assigner) *orderPoller {
 	return &orderPoller{
-		log: log,
+		log:      log,
 		cursor:   time.Now().Add(-5 * time.Second),
 		period:   p,
 		gateway:  gw,
@@ -53,6 +54,7 @@ func (op *orderPoller) Start(ctx context.Context) {
 	}
 }
 
+// processTick - получение заказов и назначение доставок
 func (op *orderPoller) processTick(ctx context.Context) {
 	orders, err := op.fetch(ctx)
 	if err != nil {
@@ -60,11 +62,12 @@ func (op *orderPoller) processTick(ctx context.Context) {
 		return
 	}
 	if err := op.assignDeliveries(ctx, orders); err != nil {
-		op.log.Error("failed to fetch orders", logger.NewField("error", err))
+		op.log.Error("failed to assign deliveries", logger.NewField("error", err))
 		return
 	}
 }
 
+// fetch - получение заказов
 func (op *orderPoller) fetch(ctx context.Context) ([]*order.Order, error) {
 	out, err := op.gateway.GetOrders(ctx, op.cursor)
 	if err != nil {
@@ -73,6 +76,7 @@ func (op *orderPoller) fetch(ctx context.Context) ([]*order.Order, error) {
 	return out, nil
 }
 
+// assignDeliveries - назначение доставок
 func (op *orderPoller) assignDeliveries(ctx context.Context, ords []*order.Order) error {
 	for _, ord := range ords {
 		op.log.Info("planning delivery on order...", logger.NewField("order_id", ord.OrderID))

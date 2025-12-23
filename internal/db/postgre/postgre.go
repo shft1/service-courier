@@ -37,6 +37,7 @@ func InitPool(ctx context.Context, log logger.Logger, env *dbcfg.DataBaseEnv) *p
 	cfg, err := pgxpool.ParseConfig(connString)
 	if err != nil {
 		log.Error("config database parsing error!")
+		return nil
 	}
 
 	cfg.MaxConns = 10
@@ -46,9 +47,11 @@ func InitPool(ctx context.Context, log logger.Logger, env *dbcfg.DataBaseEnv) *p
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		log.Error("pool creation error!")
+		return nil
 	}
 	if err := pingWithRetry(ctx, log, pool); err != nil {
 		log.Error("database connection failed!")
+		return nil
 	}
 	return pool
 }

@@ -1,8 +1,8 @@
 package consumercfg
 
 import (
-	"fmt"
 	"os"
+	"service-courier/observability/logger"
 	"time"
 )
 
@@ -17,10 +17,10 @@ type ConsumerEnv struct {
 }
 
 // SetupConsumerEnv - парсер env переменных
-func SetupConsumerEnv() *ConsumerEnv {
+func SetupConsumerEnv(log logger.Logger) *ConsumerEnv {
 	interval, err := time.ParseDuration(os.Getenv("COMMIT_INTERVAL"))
 	if err != nil {
-		fmt.Println("error parsing kafka commit interval:", err)
+		log.Warn("failed to parse kafka commit offset interval", logger.NewField("error", err))
 		interval = 1 * time.Second
 	}
 

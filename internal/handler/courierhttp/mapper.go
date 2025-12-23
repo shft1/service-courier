@@ -2,9 +2,9 @@ package courierhttp
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"service-courier/internal/domain/courier"
+	"service-courier/observability/logger"
 )
 
 func mapError(err error) (int, string) {
@@ -26,12 +26,16 @@ func mapError(err error) (int, string) {
 	}
 }
 
-func writeResponse(w http.ResponseWriter, status int, data any, err error) {
+// writeResponse - подготовка и отправка ответа для клиента
+func writeResponse(log logger.Logger, w http.ResponseWriter, status int, data any, err error) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if err != nil {
 		var msg string
 		status, msg = mapError(err)
+		if status == http.StatusInternalServerError {
+			log.Error("unknown server error", logger.NewField("error", err))
+		}
 		data = map[string]string{"error": msg}
 	}
 	w.WriteHeader(status)
@@ -40,6 +44,6 @@ func writeResponse(w http.ResponseWriter, status int, data any, err error) {
 		return
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		fmt.Println("failed to send payload")
+		log.Error("failed to send payload")
 	}
 }

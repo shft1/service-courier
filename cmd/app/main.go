@@ -64,7 +64,7 @@ func main() {
 	// Инициализация логики курьеров
 	courDB := courierdb.NewCourierRepository(pool, txManager)
 	courApp := courierapp.NewCourierService(courDB)
-	courHTTP := courierhttp.NewCourierHandler(courApp)
+	courHTTP := courierhttp.NewCourierHandler(zlog, courApp)
 
 	// Инициализация фабрики времени
 	timeFactory := deliveryapp.NewFactoryTimeCalculator()

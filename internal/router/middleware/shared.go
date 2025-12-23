@@ -2,6 +2,7 @@ package middleware
 
 import "net/http"
 
+// responseWriter - переопределнный объект писателя
 type responseWriter struct {
 	http.ResponseWriter
 	statusCode int
