@@ -1,4 +1,4 @@
-package orderhandler
+package orderbus
 
 import "service-courier/internal/domain/order"
 

@@ -1,4 +1,4 @@
-package orderkafka
+package kafka
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 
 // kafkaClient - клиент Kafka
 type kafkaClient struct {
-	log logger.Logger
+	log     logger.Logger
 	client  sarama.ConsumerGroup
 	handler consumerHandler
 	topics  []string

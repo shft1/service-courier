@@ -8,7 +8,7 @@ import (
 
 const (
 	created   = "created"
-	deleted = "deleted"
+	deleted   = "deleted"
 	completed = "completed"
 )
 
@@ -20,7 +20,7 @@ func NewFactoryEventStrategy(delExec deliveryExecutor) factoryEventStrategy {
 	return factoryEventStrategy{delExec: delExec}
 }
 
-func (f factoryEventStrategy) GetEventStrategy(statusMsg string, statusNow string) (Executor, error) {
+func (f factoryEventStrategy) GetEventStrategy(statusMsg, statusNow string) (Executor, error) {
 	switch {
 	case statusMsg == created && statusNow != deleted && statusNow != completed:
 		return AssignStrategy{f.delExec}, nil

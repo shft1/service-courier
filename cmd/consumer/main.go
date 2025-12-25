@@ -7,10 +7,10 @@ import (
 	"os/signal"
 	"service-courier/internal/config/consumercfg"
 	"service-courier/internal/config/dbcfg"
+	"service-courier/internal/databus/kafka"
 	"service-courier/internal/db/postgre"
-	"service-courier/internal/gateway/grpc/ordergrpc"
-	"service-courier/internal/gateway/kafka/orderkafka"
-	"service-courier/internal/handler/kafka/orderhandler"
+	"service-courier/internal/gateway/ordergrpc"
+	"service-courier/internal/handler/orderbus"
 	"service-courier/internal/proto/orderpb"
 	"service-courier/internal/repository/courierdb"
 	"service-courier/internal/repository/deliverydb"
@@ -28,7 +28,7 @@ func main() {
 	sysCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	// Инициализация логгера 
+	// Инициализация логгера
 	zlog, err := logger.NewZapAdapter()
 	if err != nil {
 		log.Printf("failed to init logger: %v", err)
@@ -78,11 +78,11 @@ func main() {
 	clientPB := orderpb.NewOrdersServiceClient(conn)
 	orderGW := ordergrpc.NewGateway(clientPB)
 
-	// Инициализация обработчика Kafka
-	handler := orderhandler.NewConsumeHandler(zlog, orderGW, eventFactory)
+	// Инициализация обработчика топика changed Kafka
+	handler := orderbus.NewConsumeHandler(zlog, orderGW, eventFactory)
 
 	// Инициализация Kafka клиента
-	kafkaClient, err := orderkafka.NewKafkaClient(zlog, consumEnv, handler, []string{consumEnv.KafkaTopic})
+	kafkaClient, err := kafka.NewKafkaClient(zlog, consumEnv, handler, []string{consumEnv.KafkaTopic})
 	if err != nil {
 		zlog.Error("failed to create Kafka client", logger.NewField("error", err))
 		return

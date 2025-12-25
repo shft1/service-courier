@@ -1,4 +1,4 @@
-package orderhandler
+package orderbus
 
 import "time"
 

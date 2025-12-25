@@ -1,4 +1,4 @@
-package orderhandler
+package orderbus
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 // consumeHandler - обработчик топика Kafka
 type consumeHandler struct {
-	log logger.Logger
+	log     logger.Logger
 	gateway orderGateway
 	factory eventStrategyFactory
 }
@@ -19,7 +19,7 @@ type consumeHandler struct {
 // NewConsumeHandler - конструктор обработчика топика Kafka
 func NewConsumeHandler(log logger.Logger, gw orderGateway, f eventStrategyFactory) *consumeHandler {
 	return &consumeHandler{
-		log: log,
+		log:     log,
 		gateway: gw,
 		factory: f,
 	}
