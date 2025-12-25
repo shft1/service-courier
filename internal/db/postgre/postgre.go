@@ -3,27 +3,28 @@ package postgre
 import (
 	"context"
 	"fmt"
-	"service-courier/internal/config"
+	"service-courier/internal/config/dbcfg"
+	"service-courier/observability/logger"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func pingWithRetry(ctx context.Context, pool *pgxpool.Pool) error {
+func pingWithRetry(ctx context.Context, log logger.Logger, pool *pgxpool.Pool) error {
 	var err error
 	for i := 0; i < 3; i++ {
 		err = pool.Ping(ctx)
 		if err == nil {
 			return err
 		}
-		fmt.Println("database connection failed, retry...")
+		log.Warn("database connection failed, retry...")
 		time.Sleep(time.Second * 5)
 	}
 	return err
 }
 
 // InitPool - создание пула соединений с БД
-func InitPool(ctx context.Context, env *config.Env) *pgxpool.Pool {
+func InitPool(ctx context.Context, log logger.Logger, env *dbcfg.DataBaseEnv) *pgxpool.Pool {
 	connString := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		env.DBUser,
@@ -35,7 +36,8 @@ func InitPool(ctx context.Context, env *config.Env) *pgxpool.Pool {
 
 	cfg, err := pgxpool.ParseConfig(connString)
 	if err != nil {
-		fmt.Println("config database parsing error!")
+		log.Error("config database parsing error!")
+		return nil
 	}
 
 	cfg.MaxConns = 10
@@ -44,10 +46,12 @@ func InitPool(ctx context.Context, env *config.Env) *pgxpool.Pool {
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
-		fmt.Println("pool creation error!")
+		log.Error("pool creation error!")
+		return nil
 	}
-	if err := pingWithRetry(ctx, pool); err != nil {
-		fmt.Println("database connection failed!")
+	if err := pingWithRetry(ctx, log, pool); err != nil {
+		log.Error("database connection failed!")
+		return nil
 	}
 	return pool
 }

@@ -1,0 +1,31 @@
+volumes:
+  pgdata:
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: my-postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+     - .env
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_LOCALPORT}"
+    networks:
+      - infrastructure_default
+  service-courier:
+    build:
+      context: ../../
+      dockerfile: deploy/app/Dockerfile
+    container_name: service-courier
+    env_file:
+      - .env
+    ports:
+      - "${COURIER_PORT}:${COURIER_LOCALPORT}"
+    networks:
+      - infrastructure_default
+  
+
+networks:
+  infrastructure_default:
+    external: true

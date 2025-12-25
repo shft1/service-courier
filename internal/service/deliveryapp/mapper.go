@@ -7,6 +7,7 @@ import (
 	"service-courier/internal/domain/delivery"
 )
 
+// mapError - маппинг ошибок сервиса доставок
 func mapError(err error) error {
 	switch {
 	case errors.Is(err, delivery.ErrDeliveryExist):

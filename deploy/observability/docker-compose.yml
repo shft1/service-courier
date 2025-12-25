@@ -1,0 +1,30 @@
+services:
+  prometheus:
+    image: prom/prometheus
+    env_file:
+     - .env
+    ports: 
+      - "${PROMETHEUS_PORT:-9090}:${PROMETHEUS_LOCALPORT:-9090}"
+    volumes:
+      - "../../observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "prometheus-data:/prometheus"
+    networks:
+      - infrastructure_default
+  grafana:
+    image: grafana/grafana
+    env_file:
+     - .env
+    ports:
+      - "${GRAFANA_PORT:-3030}:${GRAFANA_LOCALPORT:-3030}"
+    volumes:
+      - "grafana-data:/var/lib/grafana"
+      - "../../observability/grafana/provisioning:/etc/grafana/provisioning"
+    networks:
+      - infrastructure_default
+volumes:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  infrastructure_default:
+    external: true

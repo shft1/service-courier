@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"service-courier/internal/domain/courier"
 	"service-courier/internal/handler/courierhttp"
+	"service-courier/observability/logger"
 	"strings"
 	"testing"
 
@@ -18,6 +19,7 @@ import (
 func TestCourierHandler_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	m := NewMockcourierService(ctrl)
+	log, _ := logger.NewZapAdapter()
 
 	tests := []struct {
 		name         string
@@ -83,7 +85,7 @@ func TestCourierHandler_Create(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := courierhttp.NewCourierHandler(m)
+			h := courierhttp.NewCourierHandler(log, m)
 
 			r := httptest.NewRequest(http.MethodPost, "/courier", strings.NewReader(tt.inputBody))
 			w := httptest.NewRecorder()
@@ -100,6 +102,7 @@ func TestCourierHandler_Create(t *testing.T) {
 func TestCourierHandler_Update(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	m := NewMockcourierService(ctrl)
+	log, _ := logger.NewZapAdapter()
 
 	tests := []struct {
 		name         string
@@ -176,7 +179,7 @@ func TestCourierHandler_Update(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := courierhttp.NewCourierHandler(m)
+			h := courierhttp.NewCourierHandler(log, m)
 
 			r := httptest.NewRequest(http.MethodPut, "/courier", strings.NewReader(tt.inputBody))
 			w := httptest.NewRecorder()
@@ -193,6 +196,7 @@ func TestCourierHandler_Update(t *testing.T) {
 func TestCourierHandler_GetByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	m := NewMockcourierService(ctrl)
+	log, _ := logger.NewZapAdapter()
 
 	c := courier.Courier{
 		ID:            1,
@@ -271,7 +275,7 @@ func TestCourierHandler_GetByID(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := courierhttp.NewCourierHandler(m)
+			h := courierhttp.NewCourierHandler(log, m)
 
 			r := httptest.NewRequest(http.MethodGet, "/courier/1", nil)
 			w := httptest.NewRecorder()
@@ -292,6 +296,7 @@ func TestCourierHandler_GetByID(t *testing.T) {
 func TestCourierHandler_GetMulti(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	m := NewMockcourierService(ctrl)
+	log, _ := logger.NewZapAdapter()
 
 	tests := []struct {
 		name         string
@@ -316,7 +321,7 @@ func TestCourierHandler_GetMulti(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := courierhttp.NewCourierHandler(m)
+			h := courierhttp.NewCourierHandler(log, m)
 
 			r := httptest.NewRequest(http.MethodGet, "/couriers", nil)
 			w := httptest.NewRecorder()

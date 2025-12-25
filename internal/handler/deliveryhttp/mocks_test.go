@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 	delivery "service-courier/internal/domain/delivery"
+	order "service-courier/internal/domain/order"
 
 	gomock "go.uber.org/mock/gomock"
 )
@@ -42,7 +43,7 @@ func (m *MockdeliveryService) EXPECT() *MockdeliveryServiceMockRecorder {
 }
 
 // Assign mocks base method.
-func (m *MockdeliveryService) Assign(ctx context.Context, orderID delivery.OrderID) (*delivery.AssignResult, error) {
+func (m *MockdeliveryService) Assign(ctx context.Context, orderID order.OrderID) (*delivery.AssignResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Assign", ctx, orderID)
 	ret0, _ := ret[0].(*delivery.AssignResult)
@@ -71,7 +72,7 @@ func (mr *MockdeliveryServiceMockRecorder) CheckDelivery(ctx any) *gomock.Call {
 }
 
 // Unassign mocks base method.
-func (m *MockdeliveryService) Unassign(ctx context.Context, orderID delivery.OrderID) (*delivery.UnassignResult, error) {
+func (m *MockdeliveryService) Unassign(ctx context.Context, orderID order.OrderID) (*delivery.UnassignResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Unassign", ctx, orderID)
 	ret0, _ := ret[0].(*delivery.UnassignResult)

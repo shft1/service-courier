@@ -1,9 +1,12 @@
 package deliveryhttp
 
-import "service-courier/internal/domain/delivery"
+import (
+	"service-courier/internal/domain/delivery"
+	"service-courier/internal/domain/order"
+)
 
-func toDomainOrderID(req DeliveryOrderRequest) delivery.OrderID {
-	return delivery.OrderID{OrderID: req.OrderID}
+func toDomainOrderID(req DeliveryOrderRequest) order.OrderID {
+	return order.OrderID{OrderID: req.OrderID}
 }
 
 func domainToDTOAssign(del *delivery.AssignResult) DeliveryAssignResponse {

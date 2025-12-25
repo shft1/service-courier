@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
+// mapError - маппинг ошибок репозитория курьеров
 func mapError(err error) error {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {

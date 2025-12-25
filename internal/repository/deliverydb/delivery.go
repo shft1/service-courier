@@ -3,6 +3,7 @@ package deliverydb
 import (
 	"context"
 	"service-courier/internal/domain/delivery"
+	"service-courier/internal/domain/order"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -47,7 +48,7 @@ func (dr *deliveryRepository) Create(ctx context.Context, del *delivery.AssignCr
 }
 
 // Delete - удалить доставку
-func (dr *deliveryRepository) Delete(ctx context.Context, orderID delivery.OrderID) (*delivery.Delivery, error) {
+func (dr *deliveryRepository) Delete(ctx context.Context, orderID order.OrderID) (*delivery.Delivery, error) {
 	var delRow deliveryRow
 
 	tx, err := dr.txManager.GetTx(ctx)
@@ -57,6 +58,30 @@ func (dr *deliveryRepository) Delete(ctx context.Context, orderID delivery.Order
 	query := `
 	DELETE FROM delivery WHERE order_id = $1
 	RETURNING id, courier_id, order_id, assigned_at, deadline;`
+	args := []any{orderID.OrderID}
+
+	err = tx.QueryRow(
+		ctx, query, args...,
+	).Scan(&delRow.DeliveryID, &delRow.CourierID, &delRow.OrderID, &delRow.AssignedAt, &delRow.Deadline)
+
+	if err != nil {
+		return nil, mapError(err)
+	}
+	return rowToDomainDelivery(&delRow), nil
+}
+
+// Get - получить доставку
+func (dr *deliveryRepository) Get(ctx context.Context, orderID order.OrderID) (*delivery.Delivery, error) {
+	var delRow deliveryRow
+
+	tx, err := dr.txManager.GetTx(ctx)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	query := `
+	SELECT id, courier_id, order_id, assigned_at, deadline
+	FROM delivery
+	WHERE order_id = $1;`
 	args := []any{orderID.OrderID}
 
 	err = tx.QueryRow(
