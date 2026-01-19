@@ -12,6 +12,7 @@ import (
 	"service-courier/internal/handler/courierhttp"
 	"service-courier/internal/handler/deliveryhttp"
 	"service-courier/internal/handler/healthhttp"
+	"service-courier/internal/limiter"
 	"service-courier/internal/repository/courierdb"
 	"service-courier/internal/repository/deliverydb"
 	"service-courier/internal/router"
@@ -22,6 +23,7 @@ import (
 	"service-courier/internal/worker/deliveryworker"
 	"service-courier/observability/logger"
 	"service-courier/observability/metrics"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -34,7 +36,7 @@ func main() {
 	sysCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	// Инициализация логгера 
+	// Инициализация логгера
 	zlog, err := logger.NewZapAdapter()
 	if err != nil {
 		log.Printf("failed to init logger: %v", err)
@@ -86,8 +88,26 @@ func main() {
 	// Инициализация обработчика метрик
 	metricsHTTP := promhttp.Handler().ServeHTTP
 
+	refil, err := time.ParseDuration(appEnv.Refill)
+	if err != nil {
+		zlog.Error("failed to parse refil time", logger.NewField("error", err))
+		return
+	}
+	limit, err := strconv.Atoi(appEnv.Limit)
+	if err != nil {
+		zlog.Error("failed to parse limit bucket", logger.NewField("error", err))
+		return
+	}
+
+	// Инициализация Middleware ограничителя запросов
+	limiter := limiter.NewTokenBucketLimiter(refil, limit)
+
+	go limiter.StartReplenishment(sysCtx)
+
+	limiterMW := middleware.NewLimiterMiddleware(limiter)
+
 	// Регистрация адресов и middleware
-	router := router.SetupRoute(loggerMW, metricsMW, healthHTTP, courHTTP, delHTTP, metricsHTTP)
+	router := router.SetupRoute(loggerMW, metricsMW, limiterMW, healthHTTP, courHTTP, delHTTP, metricsHTTP)
 
 	// // [Note] - Работа с заказами происходит через Kafka
 	// // Инициализация gRPC соединения
@@ -126,6 +146,7 @@ func main() {
 	cmd := cli.CliHandler(appEnv)
 	if err := cmd.Run(sysCtx, os.Args); err != nil {
 		zlog.Error("failed to parse cli command", logger.NewField("error", err))
+		return
 	}
 	// Запуск сервера через graceful shutdown
 	server.StartServerGraceful(zlog, sysCtx, router, pool, appEnv)

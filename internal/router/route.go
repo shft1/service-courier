@@ -13,14 +13,13 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-
 type Middleware func(http.Handler) http.Handler
-
 
 // SetupRoute - регистрирует эндпоинты и middleware в роутере
 func SetupRoute(
 	loggerMW Middleware,
 	metricsMW Middleware,
+	limiter Middleware,
 	hHand *healthhttp.HealthHandler,
 	cHand *courierhttp.CourierHandler,
 	dHand *deliveryhttp.DeliveryHandler,
@@ -30,6 +29,7 @@ func SetupRoute(
 
 	mainRouter.Use(loggerMW)
 	mainRouter.Use(metricsMW)
+	mainRouter.Use(limiter)
 
 	healthroute.HealthRoute(mainRouter, hHand)
 	courierroute.CourierRoute(mainRouter, cHand)

@@ -10,6 +10,8 @@ type AppEnv struct {
 	OrderPort string
 	TimeCheck string
 	TimePoll  string
+	Refill    string
+	Limit     string
 }
 
 // SetupAppEnv - парсер env переменных
@@ -25,5 +27,7 @@ func SetupAppEnv() *AppEnv {
 		OrderPort: os.Getenv("ORDER_GRPC_PORT"),
 		TimeCheck: os.Getenv("TIME_CHECK"),
 		TimePoll:  os.Getenv("TIME_POLL"),
+		Refill:    os.Getenv("REFILL"),
+		Limit:     os.Getenv("LIMIT"),
 	}
 }
