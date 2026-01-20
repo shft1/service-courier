@@ -72,6 +72,9 @@ func main() {
 	// Инициализация фабрики бизнес-операций
 	eventFactory := deliveryapp.NewFactoryEventStrategy(delApp)
 
+	// Инициализация Logger интерцептора
+	loggerInter := mdrpc.NewLoggerInterceptor(zlog)
+
 	// Инициализация Retry интерцептора
 	strategy := retry.NewExponentialBackoffWithJitter(consumEnv.Multiplier, consumEnv.Jitter, consumEnv.InitDelay, consumEnv.MaxDelay)
 	retry := retry.NewRetryExecutor(
@@ -91,7 +94,7 @@ func main() {
 	grpcServer := net.JoinHostPort(consumEnv.OrderHost, consumEnv.OrderPort)
 	conn, err := grpc.NewClient(
 		grpcServer,
-		grpc.WithChainUnaryInterceptor(retryInter, metricsInter),
+		grpc.WithChainUnaryInterceptor(loggerInter, retryInter, metricsInter),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
