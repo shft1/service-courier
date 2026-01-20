@@ -1,9 +1,9 @@
-package middleware
+package mdhttp
 
 import (
 	"encoding/json"
 	"net/http"
-	"service-courier/internal/limiter"
+	"service-courier/internal/resilience/limiter"
 	"strconv"
 )
 

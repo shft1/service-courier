@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
+	"net"
 	"os/signal"
 	"service-courier/internal/config/consumercfg"
 	"service-courier/internal/config/dbcfg"
@@ -11,9 +11,11 @@ import (
 	"service-courier/internal/db/postgre"
 	"service-courier/internal/gateway/ordergrpc"
 	"service-courier/internal/handler/orderbus"
+	"service-courier/internal/middleware/mdrpc"
 	"service-courier/internal/proto/orderpb"
 	"service-courier/internal/repository/courierdb"
 	"service-courier/internal/repository/deliverydb"
+	"service-courier/internal/resilience/retry"
 	"service-courier/internal/service/deliveryapp"
 	"service-courier/observability/logger"
 	"syscall"
@@ -65,9 +67,22 @@ func main() {
 	// Инициализация фабрики бизнес-операций
 	eventFactory := deliveryapp.NewFactoryEventStrategy(delApp)
 
+	// Инициализация Retry интерцептора
+	strategy := retry.NewExponentialBackoffWithJitter(consumEnv.Multiplier, consumEnv.Jitter, consumEnv.InitDelay, consumEnv.MaxDelay)
+	retry := retry.NewRetryExecutor(
+		retry.WithMaxAttempts(consumEnv.MaxAttempts),
+		retry.WithStrategy(strategy),
+		retry.WithShouldRetry(retry.ShouldRetry),
+	)
+	retryInter := mdrpc.NewRetryInterceptor(retry)
+
 	// Инициализация gRPC соединения
-	grpcServer := fmt.Sprintf("%v:%v", consumEnv.OrderHost, consumEnv.OrderPort)
-	conn, err := grpc.NewClient(grpcServer, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	grpcServer := net.JoinHostPort(consumEnv.OrderHost, consumEnv.OrderPort)
+	conn, err := grpc.NewClient(
+		grpcServer,
+		grpc.WithChainUnaryInterceptor(retryInter),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
 		zlog.Error("failed to connect to gRPC server", logger.NewField("error", err))
 		return

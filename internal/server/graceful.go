@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // StartServerGraceful - запуск сервера через graceful shutdown
-func StartServerGraceful(log logger.Logger, ctx context.Context, r chi.Router, pool *pgxpool.Pool, env *appcfg.AppEnv) {
+func StartServerGraceful(ctx context.Context, log logger.Logger, r chi.Router, env *appcfg.AppEnv) {
 	srv := &http.Server{Addr: "0.0.0.0:" + env.AppPort, Handler: r}
 
 	srv.RegisterOnShutdown(func() {

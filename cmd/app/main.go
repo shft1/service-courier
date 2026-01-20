@@ -12,17 +12,17 @@ import (
 	"service-courier/internal/handler/courierhttp"
 	"service-courier/internal/handler/deliveryhttp"
 	"service-courier/internal/handler/healthhttp"
-	"service-courier/internal/limiter"
+	"service-courier/internal/middleware/mdhttp"
 	"service-courier/internal/repository/courierdb"
 	"service-courier/internal/repository/deliverydb"
+	"service-courier/internal/resilience/limiter"
 	"service-courier/internal/router"
-	"service-courier/internal/router/middleware"
 	"service-courier/internal/server"
 	"service-courier/internal/service/courierapp"
 	"service-courier/internal/service/deliveryapp"
 	"service-courier/internal/worker/deliveryworker"
 	"service-courier/observability/logger"
-	"service-courier/observability/metrics"
+	"service-courier/observability/metrics/metricshttp"
 	"strconv"
 	"syscall"
 	"time"
@@ -77,13 +77,13 @@ func main() {
 	delHTTP := deliveryhttp.NewDeliveryHandler(delApp)
 
 	// Инициализация Middleware логгирования
-	loggerMW := middleware.NewLoggerMiddleware(zlog)
+	loggerMW := mdhttp.NewLoggerMiddleware(zlog)
 
 	// Инициализация метрик
-	metrics := metrics.NewHTTPMetrics()
+	metricshttp := metricshttp.NewHTTPMetrics()
 
 	// Инициализация Middleware метрик
-	metricsMW := middleware.NewMetricsMiddleware(metrics)
+	metricsMW := mdhttp.NewMetricsMiddleware(metricshttp)
 
 	// Инициализация обработчика метрик
 	metricsHTTP := promhttp.Handler().ServeHTTP
@@ -104,7 +104,7 @@ func main() {
 
 	go limiter.StartReplenishment(sysCtx)
 
-	limiterMW := middleware.NewLimiterMiddleware(limiter)
+	limiterMW := mdhttp.NewLimiterMiddleware(limiter)
 
 	// Регистрация адресов и middleware
 	router := router.SetupRoute(loggerMW, metricsMW, limiterMW, healthHTTP, courHTTP, delHTTP, metricsHTTP)
@@ -149,5 +149,5 @@ func main() {
 		return
 	}
 	// Запуск сервера через graceful shutdown
-	server.StartServerGraceful(zlog, sysCtx, router, pool, appEnv)
+	server.StartServerGraceful(sysCtx, zlog, router, appEnv)
 }

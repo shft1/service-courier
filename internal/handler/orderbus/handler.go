@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"service-courier/internal/domain/order"
 	"service-courier/observability/logger"
+	"time"
 
 	"github.com/IBM/sarama"
 )
@@ -55,9 +56,10 @@ func (ch *consumeHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim s
 		curStatus, err := ch.getOrderStatus(ctx, dtoToDomainOrderID(&msg))
 		if err != nil {
 			ch.log.Warn(
-				"failed to get actual order status, retry...",
+				"failed to get actual order status, retry after 30 seconds",
 				logger.NewField("error", err),
 			)
+			time.Sleep(30 * time.Second)
 			continue
 		}
 		st, err := ch.factory.GetEventStrategy(msg.Status, curStatus)

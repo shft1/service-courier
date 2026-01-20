@@ -1,14 +1,14 @@
-package middleware
+package mdhttp
 
 import (
 	"net/http"
-	"service-courier/observability/metrics"
+	"service-courier/observability/metrics/metricshttp"
 	"strconv"
 	"time"
 )
 
 // NewMetricsMiddleware - конструктор Middleware для метрик
-func NewMetricsMiddleware(m *metrics.HTTPMetrics) func(http.Handler) http.Handler {
+func NewMetricsMiddleware(m *metricshttp.HTTPMetrics) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
