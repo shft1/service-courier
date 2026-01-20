@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"net/http"
-	"service-courier/internal/config/appcfg"
 	"service-courier/observability/logger"
 	"time"
 
@@ -11,8 +10,8 @@ import (
 )
 
 // StartServerGraceful - запуск сервера через graceful shutdown
-func StartServerGraceful(ctx context.Context, log logger.Logger, r chi.Router, env *appcfg.AppEnv) {
-	srv := &http.Server{Addr: "0.0.0.0:" + env.AppPort, Handler: r}
+func StartServerGraceful(ctx context.Context, log logger.Logger, r chi.Router, port string) {
+	srv := &http.Server{Addr: "0.0.0.0:" + port, Handler: r}
 
 	srv.RegisterOnShutdown(func() {
 		log.Info("Shutting down service-courier...")

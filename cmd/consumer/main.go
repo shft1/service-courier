@@ -16,11 +16,16 @@ import (
 	"service-courier/internal/repository/courierdb"
 	"service-courier/internal/repository/deliverydb"
 	"service-courier/internal/resilience/retry"
+	"service-courier/internal/router/metricsroute"
+	"service-courier/internal/server"
 	"service-courier/internal/service/deliveryapp"
 	"service-courier/observability/logger"
+	"service-courier/observability/metrics/metricsrpc"
 	"syscall"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -76,11 +81,17 @@ func main() {
 	)
 	retryInter := mdrpc.NewRetryInterceptor(retry)
 
+	// Инициализация Metrics RPC
+	metrics := metricsrpc.NewRPCMetrics()
+
+	// Инициализация Metrics интерцептора
+	metricsInter := mdrpc.NewMetricsInterceptor(metrics, retry.IsRetryFromContext)
+
 	// Инициализация gRPC соединения
 	grpcServer := net.JoinHostPort(consumEnv.OrderHost, consumEnv.OrderPort)
 	conn, err := grpc.NewClient(
 		grpcServer,
-		grpc.WithChainUnaryInterceptor(retryInter),
+		grpc.WithChainUnaryInterceptor(retryInter, metricsInter),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -106,11 +117,17 @@ func main() {
 
 	// Запуск консьюминга Kafka
 	go kafkaClient.Consume(sysCtx)
-
 	zlog.Info("start kafka consuming")
 
-	// Ожидание отмены контекста
-	<-sysCtx.Done()
+	// Инициализация роутера
+	router := chi.NewRouter()
 
-	zlog.Info("stopped kafka consuming")
+	// Инициализация обработчика метрик
+	metricsHTTP := promhttp.Handler().ServeHTTP
+
+	// Регистрация обработчика метрик в роутере
+	metricsroute.MetricsRoute(router, metricsHTTP)
+
+	// Запуск сервера через graceful shutdown
+	server.StartServerGraceful(sysCtx, zlog, router, consumEnv.Port)
 }

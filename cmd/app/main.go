@@ -149,5 +149,5 @@ func main() {
 		return
 	}
 	// Запуск сервера через graceful shutdown
-	server.StartServerGraceful(sysCtx, zlog, router, appEnv)
+	server.StartServerGraceful(sysCtx, zlog, router, appEnv.AppPort)
 }

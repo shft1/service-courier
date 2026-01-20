@@ -23,7 +23,7 @@ func NewExponentialBackoffWithJitter(multi, jitter float64, initDelay, maxDelay 
 }
 
 func (e *exponentialBackoffWithJitter) NextDelay(attempts int) time.Duration {
-	delay := float64(e.initialDelay) * math.Pow(e.multiplier, float64(attempts-1))
+	delay := float64(e.initialDelay) * math.Pow(e.multiplier, float64(attempts))
 	if delay > float64(e.maxDelay) {
 		delay = float64(e.maxDelay)
 	}

@@ -32,8 +32,12 @@ func NewRetryExecutor(opts ...option) *retryExecutor {
 
 func (r *retryExecutor) ExecuteWithContext(ctx context.Context, fn func(context.Context) error) error {
 	var lastErr error
-	for attempt := 1; attempt <= r.maxAttempts; attempt++ {
-		err := fn(ctx)
+
+	for attempt := 0; attempt < r.maxAttempts; attempt++ {
+		isRetry := attempt > 0
+		attemptCtx := context.WithValue(ctx, isRetryKey, isRetry)
+
+		err := fn(attemptCtx)
 		if err == nil {
 			return nil
 		}
@@ -48,4 +52,11 @@ func (r *retryExecutor) ExecuteWithContext(ctx context.Context, fn func(context.
 		}
 	}
 	return fmt.Errorf("%w: %v", order.ErrServiceUnavailable, lastErr)
+}
+
+func (r *retryExecutor) IsRetryFromContext(ctx context.Context) bool {
+	if isRetry, ok := ctx.Value(isRetryKey).(bool); ok {
+		return isRetry
+	}
+	return false
 }
