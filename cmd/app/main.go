@@ -33,7 +33,6 @@ import (
 )
 
 func main() {
-	var a int
 	// Инициализация основного контекста
 	sysCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
