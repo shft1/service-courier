@@ -41,7 +41,7 @@ jobs:
         run: go test -count=1 -race ./... 
 
   integration-tests:
-    runs-on: ubuntu-22.04-docker
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v5
