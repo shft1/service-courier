@@ -2,9 +2,16 @@ package retry
 
 import (
 	"math"
-	"math/rand/v2"
+	"math/rand"
 	"time"
 )
+
+type Arguments struct {
+	Multi     float64
+	Jitter    float64
+	InitDelay time.Duration
+	MaxDelay  time.Duration
+}
 
 type exponentialBackoffWithJitter struct {
 	multiplier   float64
@@ -13,12 +20,12 @@ type exponentialBackoffWithJitter struct {
 	maxDelay     time.Duration
 }
 
-func NewExponentialBackoffWithJitter(multi, jitter float64, initDelay, maxDelay time.Duration) *exponentialBackoffWithJitter {
+func NewExponentialBackoffWithJitter(args Arguments) *exponentialBackoffWithJitter {
 	return &exponentialBackoffWithJitter{
-		multiplier:   multi,
-		jitterFactor: jitter,
-		initialDelay: initDelay,
-		maxDelay:     maxDelay,
+		multiplier:   args.Multi,
+		jitterFactor: args.Jitter,
+		initialDelay: args.InitDelay,
+		maxDelay:     args.MaxDelay,
 	}
 }
 

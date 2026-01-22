@@ -1,9 +1,9 @@
 package deliveryroute
 
 import (
-	"service-courier/internal/handler/deliveryhttp"
-
 	"github.com/go-chi/chi/v5"
+
+	"service-courier/internal/handler/deliveryhttp"
 )
 
 // DeliveryRoute - роуты для доставок

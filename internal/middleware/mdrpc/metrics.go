@@ -2,9 +2,10 @@ package mdrpc
 
 import (
 	"context"
-	"service-courier/observability/metrics/metricsrpc"
 
 	"google.golang.org/grpc"
+
+	"service-courier/observability/metrics/metricsrpc"
 )
 
 func NewMetricsInterceptor(m *metricsrpc.RPCMetrics, isRetry func(context.Context) bool) grpc.UnaryClientInterceptor {

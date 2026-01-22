@@ -1,9 +1,9 @@
 package courierroute
 
 import (
-	"service-courier/internal/handler/courierhttp"
-
 	"github.com/go-chi/chi/v5"
+
+	"service-courier/internal/handler/courierhttp"
 )
 
 // CourierRoute - роуты для курьеров

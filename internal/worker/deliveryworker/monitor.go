@@ -13,17 +13,17 @@ type deliveryChecker interface {
 
 // deliveryMonitor - фоновый воркер проверки доставок
 type deliveryMonitor struct {
-	log logger.Logger
-	period time.Duration
+	log     logger.Logger
+	period  time.Duration
 	checker deliveryChecker
 }
 
 // NewDeliveryMonitor - конструктор фонового воркера проверки доставок
 func NewDeliveryMonitor(log logger.Logger, period time.Duration, checker deliveryChecker) *deliveryMonitor {
 	return &deliveryMonitor{
-		log: log,
-		period: period,
-		checker:     checker,
+		log:     log,
+		period:  period,
+		checker: checker,
 	}
 }
 

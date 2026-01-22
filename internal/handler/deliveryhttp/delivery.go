@@ -3,18 +3,21 @@ package deliveryhttp
 import (
 	"encoding/json"
 	"net/http"
-	"service-courier/internal/domain/delivery"
 
 	"github.com/google/uuid"
+
+	"service-courier/internal/domain/delivery"
+	"service-courier/observability/logger"
 )
 
 // DeliveryHandler - обработчик доставок
 type DeliveryHandler struct {
+	log     logger.Logger
 	service deliveryService
 }
 
 // NewDeliveryHandler - конструктор обработчика доставок
-func NewDeliveryHandler(service deliveryService) *DeliveryHandler {
+func NewDeliveryHandler(log logger.Logger, service deliveryService) *DeliveryHandler {
 	return &DeliveryHandler{
 		service: service,
 	}
@@ -26,19 +29,19 @@ func (dh *DeliveryHandler) Assign(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	if err := json.NewDecoder(r.Body).Decode(&orderReq); err != nil {
-		writeResponse(w, 0, nil, delivery.ErrDeliveryInvalidData)
+		writeResponse(dh.log, w, 0, nil, delivery.ErrDeliveryInvalidData)
 		return
 	}
 	if err := dh.validateOrderID(orderReq); err != nil {
-		writeResponse(w, 0, nil, err)
+		writeResponse(dh.log, w, 0, nil, err)
 		return
 	}
 	del, err := dh.service.Assign(ctx, toDomainOrderID(orderReq))
 	if err != nil {
-		writeResponse(w, 0, nil, err)
+		writeResponse(dh.log, w, 0, nil, err)
 		return
 	}
-	writeResponse(w, http.StatusOK, domainToDTOAssign(del), nil)
+	writeResponse(dh.log, w, http.StatusOK, domainToDTOAssign(del), nil)
 }
 
 // Unassign - обрабатывает удаление доставки и освобождение соответствующего курьера
@@ -47,19 +50,19 @@ func (dh *DeliveryHandler) Unassign(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	if err := json.NewDecoder(r.Body).Decode(&orderID); err != nil {
-		writeResponse(w, 0, nil, delivery.ErrDeliveryInvalidData)
+		writeResponse(dh.log, w, 0, nil, delivery.ErrDeliveryInvalidData)
 		return
 	}
 	if err := dh.validateOrderID(orderID); err != nil {
-		writeResponse(w, 0, nil, err)
+		writeResponse(dh.log, w, 0, nil, err)
 		return
 	}
 	del, err := dh.service.Unassign(ctx, toDomainOrderID(orderID))
 	if err != nil {
-		writeResponse(w, 0, nil, err)
+		writeResponse(dh.log, w, 0, nil, err)
 		return
 	}
-	writeResponse(w, http.StatusOK, domainToDTOUnassign(del), nil)
+	writeResponse(dh.log, w, http.StatusOK, domainToDTOUnassign(del), nil)
 }
 
 // validateOrderID - валидирует модель запроса

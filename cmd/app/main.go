@@ -5,6 +5,13 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
+	"syscall"
+	"time"
+
+	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"service-courier/internal/cli"
 	"service-courier/internal/config/appcfg"
 	"service-courier/internal/config/dbcfg"
@@ -23,15 +30,10 @@ import (
 	"service-courier/internal/worker/deliveryworker"
 	"service-courier/observability/logger"
 	"service-courier/observability/metrics/metricshttp"
-	"strconv"
-	"syscall"
-	"time"
-
-	"github.com/joho/godotenv"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
+	var a int
 	// Инициализация основного контекста
 	sysCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
@@ -58,10 +60,10 @@ func main() {
 	defer pool.Close()
 
 	// Инициализация менеджера транзакций
-	txManager := postgre.NewTxManagerPostgre(pool)
+	txManager := postgre.NewTxManagerPostgre(zlog, pool)
 
 	// Инициализация логики состояния
-	healthHTTP := healthhttp.NewHealthHandler()
+	healthHTTP := healthhttp.NewHealthHandler(zlog)
 
 	// Инициализация логики курьеров
 	courDB := courierdb.NewCourierRepository(pool, txManager)
@@ -73,8 +75,10 @@ func main() {
 
 	// Инициализация логики доставок
 	delDB := deliverydb.NewDeliveryRepository(pool, txManager)
-	delApp := deliveryapp.NewDeliveryService(delDB, courDB, timeFactory, txManager)
-	delHTTP := deliveryhttp.NewDeliveryHandler(delApp)
+	delApp := deliveryapp.NewDeliveryService(deliveryapp.Arguments{
+		DelRepo: delDB, CourRepo: courDB, Factory: timeFactory, TxManager: txManager,
+	})
+	delHTTP := deliveryhttp.NewDeliveryHandler(zlog, delApp)
 
 	// Инициализация Middleware логгирования
 	loggerMW := mdhttp.NewLoggerMiddleware(zlog)
@@ -104,7 +108,7 @@ func main() {
 
 	go limiter.StartReplenishment(sysCtx)
 
-	limiterMW := mdhttp.NewLimiterMiddleware(limiter)
+	limiterMW := mdhttp.NewLimiterMiddleware(zlog, limiter)
 
 	// Регистрация адресов и middleware
 	router := router.SetupRoute(loggerMW, metricsMW, limiterMW, healthHTTP, courHTTP, delHTTP, metricsHTTP)

@@ -3,11 +3,12 @@ package ordergrpc
 import (
 	"context"
 	"fmt"
-	"service-courier/internal/domain/order"
-	"service-courier/internal/proto/orderpb"
 	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"service-courier/internal/domain/order"
+	"service-courier/internal/proto/orderpb"
 )
 
 // orderGateway - gRPC шлюз с сервисом доставок

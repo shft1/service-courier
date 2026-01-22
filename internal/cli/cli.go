@@ -2,10 +2,10 @@ package cli
 
 import (
 	"context"
-	"os"
-	"service-courier/internal/config/appcfg"
 
 	"github.com/urfave/cli/v3"
+
+	"service-courier/internal/config/appcfg"
 )
 
 // CliHandler - парсер командной строки
@@ -19,7 +19,6 @@ func CliHandler(env *appcfg.AppEnv) *cli.Command {
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			if port := cmd.String("port"); port != "" {
-				os.Setenv("COURIER_LOCALPORT", port)
 				env.AppPort = port
 			}
 			return nil

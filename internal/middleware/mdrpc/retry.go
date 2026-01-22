@@ -2,9 +2,10 @@ package mdrpc
 
 import (
 	"context"
-	"service-courier/internal/resilience/retry"
 
 	"google.golang.org/grpc"
+
+	"service-courier/internal/resilience/retry"
 )
 
 func NewRetryInterceptor(retry retry.Retry) grpc.UnaryClientInterceptor {

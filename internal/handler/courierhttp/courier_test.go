@@ -5,15 +5,16 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"service-courier/internal/domain/courier"
-	"service-courier/internal/handler/courierhttp"
-	"service-courier/observability/logger"
 	"strings"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+
+	"service-courier/internal/domain/courier"
+	"service-courier/internal/handler/courierhttp"
+	"service-courier/observability/logger"
 )
 
 func TestCourierHandler_Create(t *testing.T) {

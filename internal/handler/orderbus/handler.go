@@ -3,11 +3,12 @@ package orderbus
 import (
 	"context"
 	"encoding/json"
-	"service-courier/internal/domain/order"
-	"service-courier/observability/logger"
 	"time"
 
 	"github.com/IBM/sarama"
+
+	"service-courier/internal/domain/order"
+	"service-courier/observability/logger"
 )
 
 // consumeHandler - обработчик топика Kafka

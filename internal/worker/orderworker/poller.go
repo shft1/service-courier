@@ -3,10 +3,11 @@ package orderworker
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"service-courier/internal/domain/delivery"
 	"service-courier/internal/domain/order"
 	"service-courier/observability/logger"
-	"time"
 )
 
 type gateway interface {

@@ -2,8 +2,9 @@ package mdhttp
 
 import (
 	"net/http"
-	"service-courier/observability/logger"
 	"time"
+
+	"service-courier/observability/logger"
 )
 
 // NewLoggerMiddleware - конструктор Middleware для логгирования

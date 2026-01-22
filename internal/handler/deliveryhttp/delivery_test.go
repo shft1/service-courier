@@ -2,22 +2,29 @@ package deliveryhttp_test
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"net/http/httptest"
-	"service-courier/internal/domain/delivery"
 	"strings"
 	"testing"
 	"time"
 
-	"service-courier/internal/handler/deliveryhttp"
-
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+
+	"service-courier/internal/domain/delivery"
+	"service-courier/internal/handler/deliveryhttp"
+	"service-courier/observability/logger"
 )
 
 func TestDeliveryHandler_DeliveryAssign(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	m := NewMockdeliveryService(ctrl)
+	zlog, err := logger.NewZapAdapter()
+	if err != nil {
+		log.Printf("failed to init logger: %v", err)
+	}
+	defer zlog.Sync()
 
 	delivery := delivery.AssignResult{
 		CourierID:     5,
@@ -90,7 +97,7 @@ func TestDeliveryHandler_DeliveryAssign(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := deliveryhttp.NewDeliveryHandler(m)
+			h := deliveryhttp.NewDeliveryHandler(zlog, m)
 
 			r := httptest.NewRequest(http.MethodPost, "/delivery/assign", strings.NewReader(tt.inputBody))
 			w := httptest.NewRecorder()
@@ -107,6 +114,11 @@ func TestDeliveryHandler_DeliveryAssign(t *testing.T) {
 func TestDeliveryHandler_DeliveryUnassign(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	m := NewMockdeliveryService(ctrl)
+	zlog, err := logger.NewZapAdapter()
+	if err != nil {
+		log.Printf("failed to init logger: %v", err)
+	}
+	defer zlog.Sync()
 
 	delivery := delivery.UnassignResult{
 		CourierID: 5,
@@ -177,7 +189,7 @@ func TestDeliveryHandler_DeliveryUnassign(t *testing.T) {
 			if tt.behaviour != nil {
 				tt.behaviour(m)
 			}
-			h := deliveryhttp.NewDeliveryHandler(m)
+			h := deliveryhttp.NewDeliveryHandler(zlog, m)
 
 			r := httptest.NewRequest(http.MethodPost, "/delivery/assign", strings.NewReader(tt.inputBody))
 			w := httptest.NewRecorder()

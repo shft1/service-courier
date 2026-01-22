@@ -14,7 +14,9 @@ func WithMaxAttempts(attempts int) option {
 func WithStrategy(strategy strategy) option {
 	return func(r *retryExecutor) {
 		if strategy == nil {
-			strategy = NewExponentialBackoffWithJitter(2.0, 0.1, 100*time.Millisecond, 5*time.Second)
+			strategy = NewExponentialBackoffWithJitter(Arguments{
+				Multi: 2.0, Jitter: 0.1, InitDelay: 100 * time.Millisecond, MaxDelay: 5 * time.Second,
+			})
 		}
 		r.strategy = strategy
 	}

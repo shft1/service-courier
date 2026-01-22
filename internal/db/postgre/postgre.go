@@ -3,11 +3,12 @@ package postgre
 import (
 	"context"
 	"fmt"
-	"service-courier/internal/config/dbcfg"
-	"service-courier/observability/logger"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"service-courier/internal/config/dbcfg"
+	"service-courier/observability/logger"
 )
 
 func pingWithRetry(ctx context.Context, log logger.Logger, pool *pgxpool.Pool) error {

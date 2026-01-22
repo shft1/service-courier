@@ -3,8 +3,9 @@ package retry
 import (
 	"context"
 	"fmt"
-	"service-courier/internal/domain/order"
 	"time"
+
+	"service-courier/internal/domain/order"
 )
 
 type retryExecutor struct {
@@ -22,7 +23,9 @@ func NewRetryExecutor(opts ...option) *retryExecutor {
 		retryExecutor.maxAttempts = 3
 	}
 	if retryExecutor.strategy == nil {
-		retryExecutor.strategy = NewExponentialBackoffWithJitter(2.0, 0.1, 100*time.Millisecond, 5*time.Second)
+		retryExecutor.strategy = NewExponentialBackoffWithJitter(Arguments{
+			Multi: 2.0, Jitter: 0.1, InitDelay: 100 * time.Millisecond, MaxDelay: 5 * time.Second,
+		})
 	}
 	if retryExecutor.shouldRetry == nil {
 		retryExecutor.shouldRetry = func(err error) bool { return err != nil }

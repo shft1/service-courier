@@ -2,6 +2,9 @@ package router
 
 import (
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+
 	"service-courier/internal/handler/courierhttp"
 	"service-courier/internal/handler/deliveryhttp"
 	"service-courier/internal/handler/healthhttp"
@@ -9,8 +12,6 @@ import (
 	"service-courier/internal/router/deliveryroute"
 	"service-courier/internal/router/healthroute"
 	"service-courier/internal/router/metricsroute"
-
-	"github.com/go-chi/chi/v5"
 )
 
 type Middleware func(http.Handler) http.Handler

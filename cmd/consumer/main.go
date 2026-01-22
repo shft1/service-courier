@@ -5,6 +5,14 @@ import (
 	"log"
 	"net"
 	"os/signal"
+	"syscall"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"service-courier/internal/config/consumercfg"
 	"service-courier/internal/config/dbcfg"
 	"service-courier/internal/databus/kafka"
@@ -21,13 +29,6 @@ import (
 	"service-courier/internal/service/deliveryapp"
 	"service-courier/observability/logger"
 	"service-courier/observability/metrics/metricsrpc"
-	"syscall"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/joho/godotenv"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -57,7 +58,7 @@ func main() {
 	defer pool.Close()
 
 	// Инициализация менеджера транзакций
-	txManager := postgre.NewTxManagerPostgre(pool)
+	txManager := postgre.NewTxManagerPostgre(zlog, pool)
 
 	// Инициализация фабрики времени
 	timeFactory := deliveryapp.NewFactoryTimeCalculator()
@@ -67,7 +68,9 @@ func main() {
 
 	// Инициализация сервиса доставок
 	delDB := deliverydb.NewDeliveryRepository(pool, txManager)
-	delApp := deliveryapp.NewDeliveryService(delDB, courDB, timeFactory, txManager)
+	delApp := deliveryapp.NewDeliveryService(deliveryapp.Arguments{
+		DelRepo: delDB, CourRepo: courDB, Factory: timeFactory, TxManager: txManager,
+	})
 
 	// Инициализация фабрики бизнес-операций
 	eventFactory := deliveryapp.NewFactoryEventStrategy(delApp)
@@ -76,7 +79,12 @@ func main() {
 	loggerInter := mdrpc.NewLoggerInterceptor(zlog)
 
 	// Инициализация Retry интерцептора
-	strategy := retry.NewExponentialBackoffWithJitter(consumEnv.Multiplier, consumEnv.Jitter, consumEnv.InitDelay, consumEnv.MaxDelay)
+	strategy := retry.NewExponentialBackoffWithJitter(retry.Arguments{
+		Multi:     consumEnv.Multiplier,
+		Jitter:    consumEnv.Jitter,
+		InitDelay: consumEnv.InitDelay,
+		MaxDelay:  consumEnv.MaxDelay,
+	})
 	retry := retry.NewRetryExecutor(
 		retry.WithMaxAttempts(consumEnv.MaxAttempts),
 		retry.WithStrategy(strategy),
@@ -111,7 +119,9 @@ func main() {
 	handler := orderbus.NewConsumeHandler(zlog, orderGW, eventFactory)
 
 	// Инициализация Kafka клиента
-	kafkaClient, err := kafka.NewKafkaClient(zlog, consumEnv, handler, []string{consumEnv.KafkaTopic})
+	kafkaClient, err := kafka.NewKafkaClient(kafka.Arguments{
+		Log: zlog, Env: consumEnv, Handler: handler, Topics: []string{consumEnv.KafkaTopic},
+	})
 	if err != nil {
 		zlog.Error("failed to create Kafka client", logger.NewField("error", err))
 		return

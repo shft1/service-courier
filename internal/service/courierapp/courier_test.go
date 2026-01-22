@@ -3,12 +3,13 @@ package courierapp_test
 import (
 	"context"
 	"fmt"
-	"service-courier/internal/domain/courier"
-	"service-courier/internal/service/courierapp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+
+	"service-courier/internal/domain/courier"
+	"service-courier/internal/service/courierapp"
 )
 
 func TestCourierService_Create(t *testing.T) {

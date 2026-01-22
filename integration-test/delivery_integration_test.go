@@ -96,15 +96,17 @@ func (s *DeliveryTestSuite) SetupSuite() {
 	err = goose.Up(stdpool, "../migrations")
 	s.Require().NoError(err)
 
-	txManager := postgre.NewTxManagerPostgre(pool)
+	txManager := postgre.NewTxManagerPostgre(zlog, pool)
 
 	timeFactory := deliveryapp.NewFactoryTimeCalculator()
 
 	courierdb := courierdb.NewCourierRepository(pool, txManager)
 
 	deliverydb := deliverydb.NewDeliveryRepository(pool, txManager)
-	deliveryapp := deliveryapp.NewDeliveryService(deliverydb, courierdb, timeFactory, txManager)
-	deliveryhttp := deliveryhttp.NewDeliveryHandler(deliveryapp)
+	deliveryapp := deliveryapp.NewDeliveryService(deliveryapp.Arguments{
+		DelRepo: deliverydb, CourRepo: courierdb, Factory: timeFactory, TxManager: txManager,
+	})
+	deliveryhttp := deliveryhttp.NewDeliveryHandler(zlog, deliveryapp)
 
 	router := chi.NewRouter()
 	deliveryroute.DeliveryRoute(router, deliveryhttp)

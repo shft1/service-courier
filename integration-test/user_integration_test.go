@@ -91,7 +91,7 @@ func (s *CourierTestSuite) SetupSuite() {
 	err = goose.Up(stdpool, "../migrations")
 	s.Require().NoError(err)
 
-	txManager := postgre.NewTxManagerPostgre(pool)
+	txManager := postgre.NewTxManagerPostgre(zlog, pool)
 
 	log, _ := logger.NewZapAdapter()
 

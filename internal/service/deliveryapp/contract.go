@@ -2,10 +2,11 @@ package deliveryapp
 
 import (
 	"context"
+	"time"
+
 	"service-courier/internal/domain/courier"
 	"service-courier/internal/domain/delivery"
 	"service-courier/internal/domain/order"
-	"time"
 )
 
 //go:generate mockgen -source=contract.go -destination=mocks_test.go -package=deliveryapp_test

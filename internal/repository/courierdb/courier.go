@@ -3,10 +3,11 @@ package courierdb
 import (
 	"context"
 	"fmt"
-	"service-courier/internal/domain/courier"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"service-courier/internal/domain/courier"
 )
 
 const tableCouriers = "couriers"

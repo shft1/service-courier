@@ -3,15 +3,16 @@ package deliveryapp_test
 import (
 	"context"
 	"fmt"
-	"service-courier/internal/domain/courier"
-	"service-courier/internal/domain/delivery"
-	"service-courier/internal/domain/order"
-	"service-courier/internal/service/deliveryapp"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+
+	"service-courier/internal/domain/courier"
+	"service-courier/internal/domain/delivery"
+	"service-courier/internal/domain/order"
+	"service-courier/internal/service/deliveryapp"
 )
 
 func TestDeliveryService_Assign(t *testing.T) {
@@ -112,7 +113,7 @@ func TestDeliveryService_Assign(t *testing.T) {
 				CourierID:     1,
 				OrderID:       "some test orderID",
 				TransportType: "scooter",
-				Deadline:      func() time.Time { res, _ := time.Parse("2006-01-02 15:04:05", "2025-01-01 00:00:00"); return res }(),
+				Deadline:      func() time.Time { t, _ := time.Parse("2006-01-02 15:04:05", "2025-01-01 00:00:00"); return t }(),
 			},
 			order.OrderID{},
 		},
@@ -150,7 +151,9 @@ func TestDeliveryService_Assign(t *testing.T) {
 				})
 
 			ctx := context.Background()
-			s := deliveryapp.NewDeliveryService(md, mc, mfac, mtx)
+			s := deliveryapp.NewDeliveryService(deliveryapp.Arguments{
+				DelRepo: md, CourRepo: mc, Factory: mfac, TxManager: mtx,
+			})
 			res, err := s.Assign(ctx, tt.input)
 
 			assert.Equal(t, tt.srvExp, res)
@@ -246,7 +249,9 @@ func TestDeliveryService_Unassign(t *testing.T) {
 					return fn(ctx)
 				})
 			ctx := context.Background()
-			s := deliveryapp.NewDeliveryService(md, mc, mfac, mtx)
+			s := deliveryapp.NewDeliveryService(deliveryapp.Arguments{
+				DelRepo: md, CourRepo: mc, Factory: mfac, TxManager: mtx,
+			})
 			res, err := s.Unassign(ctx, order.OrderID{})
 
 			assert.Equal(t, tt.srvExp, res)
@@ -281,7 +286,9 @@ func TestDeliveryService_Check(t *testing.T) {
 				Return(tt.dRepoRdErr)
 
 			ctx := context.Background()
-			s := deliveryapp.NewDeliveryService(md, mc, mfac, mtx)
+			s := deliveryapp.NewDeliveryService(deliveryapp.Arguments{
+				DelRepo: md, CourRepo: mc, Factory: mfac, TxManager: mtx,
+			})
 			err := s.CheckDelivery(ctx)
 
 			assert.ErrorIs(t, err, tt.dRepoRdErr)

@@ -2,9 +2,10 @@ package consumercfg
 
 import (
 	"os"
-	"service-courier/observability/logger"
 	"strconv"
 	"time"
+
+	"service-courier/observability/logger"
 )
 
 type ConsumerEnv struct {

@@ -19,7 +19,6 @@ func SetupAppEnv() *AppEnv {
 	port := os.Getenv("COURIER_LOCALPORT")
 	if port == "" {
 		port = "8080"
-		os.Setenv("COURIER_LOCALPORT", port)
 	}
 	return &AppEnv{
 		AppPort:   port,

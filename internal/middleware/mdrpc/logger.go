@@ -2,11 +2,12 @@ package mdrpc
 
 import (
 	"context"
-	"service-courier/observability/logger"
 	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
+
+	"service-courier/observability/logger"
 )
 
 func NewLoggerInterceptor(log logger.Logger) grpc.UnaryClientInterceptor {

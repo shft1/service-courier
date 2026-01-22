@@ -2,9 +2,10 @@ package mdhttp
 
 import (
 	"net/http"
-	"service-courier/observability/metrics/metricshttp"
 	"strconv"
 	"time"
+
+	"service-courier/observability/metrics/metricshttp"
 )
 
 // NewMetricsMiddleware - конструктор Middleware для метрик
