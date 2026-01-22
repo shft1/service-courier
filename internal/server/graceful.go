@@ -14,7 +14,7 @@ import (
 // StartServerGraceful - запуск сервера через graceful shutdown
 func StartServerGraceful(ctx context.Context, log logger.Logger, r chi.Router, port string) {
 	srv := &http.Server{
-		Addr:              net.JoinHostPort("0.0.0.0:", port),
+		Addr:              net.JoinHostPort("0.0.0.0", port),
 		Handler:           r,
 		ReadTimeout:       30 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,
@@ -31,6 +31,7 @@ func StartServerGraceful(ctx context.Context, log logger.Logger, r chi.Router, p
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			serverErr <- err
+			close(serverErr)
 		}
 	}()
 

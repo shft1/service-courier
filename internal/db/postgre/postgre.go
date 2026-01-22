@@ -25,7 +25,7 @@ func pingWithRetry(ctx context.Context, log logger.Logger, pool *pgxpool.Pool) e
 }
 
 // InitPool - создание пула соединений с БД
-func InitPool(ctx context.Context, log logger.Logger, env *dbcfg.DataBaseEnv) *pgxpool.Pool {
+func InitPool(ctx context.Context, log logger.Logger, env *dbcfg.DataBaseEnv) (*pgxpool.Pool, error) {
 	connString := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		env.DBUser,
@@ -38,7 +38,7 @@ func InitPool(ctx context.Context, log logger.Logger, env *dbcfg.DataBaseEnv) *p
 	cfg, err := pgxpool.ParseConfig(connString)
 	if err != nil {
 		log.Error("config database parsing error!")
-		return nil
+		return nil, err
 	}
 
 	cfg.MaxConns = 10
@@ -48,11 +48,11 @@ func InitPool(ctx context.Context, log logger.Logger, env *dbcfg.DataBaseEnv) *p
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		log.Error("pool creation error!")
-		return nil
+		return nil, err
 	}
 	if err := pingWithRetry(ctx, log, pool); err != nil {
 		log.Error("database connection failed!")
-		return nil
+		return nil, err
 	}
-	return pool
+	return pool, nil
 }

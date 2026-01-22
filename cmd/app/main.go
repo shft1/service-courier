@@ -55,7 +55,11 @@ func main() {
 	dbEnv := dbcfg.SetupDataBaseEnv()
 
 	// Инициализация пула соединений с БД
-	pool := postgre.InitPool(sysCtx, zlog, dbEnv)
+	pool, err := postgre.InitPool(sysCtx, zlog, dbEnv)
+	if err != nil {
+		zlog.Error("failed to create connection pool", logger.NewField("error", err))
+		return
+	}
 	defer pool.Close()
 
 	// Инициализация менеджера транзакций
