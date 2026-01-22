@@ -1,0 +1,27 @@
+name: CI service-courier
+
+on:
+  push:
+    branches: [ main,  dev-10-12 ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v5
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v7.0.0
+      
+      - name: Start linting
+        run: golangci-lint run
