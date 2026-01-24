@@ -76,7 +76,7 @@ func (s *DeliveryTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	cfg.MaxConns = 1
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	pool, err := pgxpool.NewWithConfig(s.ctx, cfg)
 	s.Require().NoError(err)

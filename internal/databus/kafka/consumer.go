@@ -52,10 +52,11 @@ func (kc *kafkaClient) Consume(ctx context.Context) {
 			kc.log.Error("kafka consume error", logger.NewField("error", err))
 		}
 		if ctx.Err() != nil {
-			return
+			break
 		}
 		time.Sleep(1 * time.Second)
 	}
+	kc.log.Warn("stop kafka consuming")
 }
 
 // Close - закрытие клиента Kafka

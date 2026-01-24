@@ -6,9 +6,11 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"sync"
 	"syscall"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -24,6 +26,7 @@ import (
 	"service-courier/internal/repository/deliverydb"
 	"service-courier/internal/resilience/limiter"
 	"service-courier/internal/router"
+	"service-courier/internal/router/pprofroute"
 	"service-courier/internal/server"
 	"service-courier/internal/service/courierapp"
 	"service-courier/internal/service/deliveryapp"
@@ -109,7 +112,13 @@ func main() {
 	// Инициализация Middleware ограничителя запросов
 	limiter := limiter.NewTokenBucketLimiter(refil, limit)
 
-	go limiter.StartReplenishment(sysCtx)
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		limiter.StartReplenishment(sysCtx)
+	}()
 
 	limiterMW := mdhttp.NewLimiterMiddleware(zlog, limiter)
 
@@ -147,7 +156,11 @@ func main() {
 	deliveryChecker := deliveryworker.NewDeliveryMonitor(zlog, checkPeriod, delApp)
 
 	// Запуск фоновой проверки доставок
-	go deliveryChecker.Start(sysCtx)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		deliveryChecker.Start(sysCtx)
+	}()
 
 	// Парсинг командной строки
 	cmd := cli.CliHandler(appEnv)
@@ -155,6 +168,25 @@ func main() {
 		zlog.Error("failed to parse cli command", logger.NewField("error", err))
 		return
 	}
-	// Запуск сервера через graceful shutdown
-	server.StartServerGraceful(sysCtx, zlog, router, appEnv.AppPort)
+
+	// Запуск основного веб-сервера
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		server.StartServer(sysCtx, zlog, router, appEnv.AppHost, appEnv.AppPort)
+	}()
+
+	// Инициализация роутера и регистрация pprof-адресов
+	proute := chi.NewRouter()
+	pprofroute.PprofRoute(proute)
+
+	// Запуск pprof веб-сервера
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		server.StartPprofServer(sysCtx, zlog, proute)
+	}()
+
+	wg.Wait()
+	zlog.Info("service-courier has been stopted")
 }

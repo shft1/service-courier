@@ -143,18 +143,17 @@ func (cr *courierRepository) GetAvailable(ctx context.Context) (*courier.Courier
 		return nil, err
 	}
 	query := `
-	WITH candidate AS (
-		SELECT c.id as cand_id
+	WITH candidates AS (
+		SELECT c.id as cand_id, c.*, COUNT(d.id) as count_del, MIN(COUNT(d.id)) OVER () as min_count_del
 		FROM couriers AS c
 		LEFT JOIN delivery as d on c.id = d.courier_id
 		WHERE c.status = 'available'
 		GROUP BY c.id
-		ORDER BY COUNT(d.id)
-		LIMIT 1
 	)
 	SELECT c.id, c.name, c.phone, c.status, c.transport_type, c.created_at, c.updated_at
-	FROM couriers AS c
-	JOIN candidate ON c.id = candidate.cand_id
+	FROM candidates AS c
+	WHERE c.count_del = c.min_count_del
+	LIMIT 1
 	FOR UPDATE SKIP LOCKED;`
 
 	err = tx.QueryRow(
@@ -219,12 +218,13 @@ func (cr *courierRepository) SetAvailable(ctx context.Context, id int64) (int64,
 // ReleaseStaleBusy - освободить курьеров, выполнивших заказ
 func (cr *courierRepository) ReleaseStaleBusy(ctx context.Context) error {
 	query := `
-	UPDATE couriers
+	UPDATE couriers as c
 	SET status = 'available'
-	WHERE status = 'busy' AND id NOT IN (
-		SELECT courier_id
-		FROM delivery
-		WHERE NOW() <= deadline
+	WHERE status = 'busy'
+	AND NOT EXISTS (
+		SELECT 1
+		FROM delivery as d
+		WHERE d.courier_id = c.id AND d.deadline >= NOW()
 	);`
 	if _, err := cr.pool.Exec(ctx, query); err != nil {
 		return mapError(err)

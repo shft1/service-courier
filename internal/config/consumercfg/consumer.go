@@ -27,6 +27,10 @@ type ConsumerEnv struct {
 
 // SetupConsumerEnv - парсер env переменных
 func SetupConsumerEnv(log logger.Logger) *ConsumerEnv {
+	host := os.Getenv("CONSUMER_LOCALHOST")
+	if host == "" {
+		host = "localhost"
+	}
 	port := os.Getenv("CONSUMER_LOCALPORT")
 	if port == "" {
 		log.Info("CONSUMER_LOCALPORT is 8080")
@@ -64,6 +68,7 @@ func SetupConsumerEnv(log logger.Logger) *ConsumerEnv {
 	}
 
 	return &ConsumerEnv{
+		Host:           host,
 		Port:           port,
 		OrderHost:      os.Getenv("ORDER_HOST"),
 		OrderPort:      os.Getenv("ORDER_GRPC_PORT"),

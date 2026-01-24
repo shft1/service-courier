@@ -5,6 +5,7 @@ import (
 )
 
 type AppEnv struct {
+	AppHost   string
 	AppPort   string
 	OrderHost string
 	OrderPort string
@@ -16,11 +17,16 @@ type AppEnv struct {
 
 // SetupAppEnv - парсер env переменных
 func SetupAppEnv() *AppEnv {
+	host := os.Getenv("COURIER_LOCALHOST")
+	if host == "" {
+		host = "localhost"
+	}
 	port := os.Getenv("COURIER_LOCALPORT")
 	if port == "" {
 		port = "8080"
 	}
 	return &AppEnv{
+		AppHost:   host,
 		AppPort:   port,
 		OrderHost: os.Getenv("ORDER_HOST"),
 		OrderPort: os.Getenv("ORDER_GRPC_PORT"),

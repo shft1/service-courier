@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/go-chi/chi/v5"
@@ -132,8 +133,14 @@ func main() {
 	}
 	defer kafkaClient.Close()
 
+	var wg sync.WaitGroup
+
 	// Запуск консьюминга Kafka
-	go kafkaClient.Consume(sysCtx)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		kafkaClient.Consume(sysCtx)
+	}()
 	zlog.Info("start kafka consuming")
 
 	// Инициализация роутера
@@ -145,6 +152,13 @@ func main() {
 	// Регистрация обработчика метрик в роутере
 	metricsroute.MetricsRoute(router, metricsHTTP)
 
-	// Запуск сервера через graceful shutdown
-	server.StartServerGraceful(sysCtx, zlog, router, consumEnv.Port)
+	// Запуск сервера метрик через graceful shutdown
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		server.StartServer(sysCtx, zlog, router, consumEnv.Host, consumEnv.Port)
+	}()
+
+	wg.Wait()
+	zlog.Info("consumer has been stopted")
 }

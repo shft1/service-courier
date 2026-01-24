@@ -11,10 +11,10 @@ import (
 	"service-courier/observability/logger"
 )
 
-// StartServerGraceful - запуск сервера через graceful shutdown
-func StartServerGraceful(ctx context.Context, log logger.Logger, r chi.Router, port string) {
+// StartServer - запуск web-сервера через graceful shutdown
+func StartServer(ctx context.Context, log logger.Logger, r chi.Router, host, port string) {
 	srv := &http.Server{
-		Addr:              net.JoinHostPort("0.0.0.0", port),
+		Addr:              net.JoinHostPort(host, port),
 		Handler:           r,
 		ReadTimeout:       30 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,
@@ -23,7 +23,7 @@ func StartServerGraceful(ctx context.Context, log logger.Logger, r chi.Router, p
 	}
 
 	srv.RegisterOnShutdown(func() {
-		log.Info("Shutting down service-courier...")
+		log.Info("shutting down web-server...")
 	})
 
 	serverErr := make(chan error)
@@ -45,8 +45,8 @@ func StartServerGraceful(ctx context.Context, log logger.Logger, r chi.Router, p
 	defer cancel()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		log.Warn("failed to shutdown service-courier gracefully", logger.NewField("error", err))
+		log.Warn("failed to shutdown web-server gracefully", logger.NewField("error", err))
 		return
 	}
-	log.Info("service-courier successfully stopped")
+	log.Info("web-server successfully stopped")
 }
