@@ -8,6 +8,8 @@ import (
 	"service-courier/internal/proto/orderpb"
 )
 
+//go:generate mockgen -source=./contract.go -destination=./mocks_test.go -package=ordergrpc_test
+
 type orderClient interface {
 	GetOrders(
 		ctx context.Context,

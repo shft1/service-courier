@@ -395,32 +395,32 @@ func (mr *MockdeliveryExecutorMockRecorder) Unassign(ctx, orderID any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unassign", reflect.TypeOf((*MockdeliveryExecutor)(nil).Unassign), ctx, orderID)
 }
 
-// MockdeliveryAssign is a mock of deliveryAssign interface.
-type MockdeliveryAssign struct {
+// MockDeliveryAssign is a mock of DeliveryAssign interface.
+type MockDeliveryAssign struct {
 	ctrl     *gomock.Controller
-	recorder *MockdeliveryAssignMockRecorder
+	recorder *MockDeliveryAssignMockRecorder
 	isgomock struct{}
 }
 
-// MockdeliveryAssignMockRecorder is the mock recorder for MockdeliveryAssign.
-type MockdeliveryAssignMockRecorder struct {
-	mock *MockdeliveryAssign
+// MockDeliveryAssignMockRecorder is the mock recorder for MockDeliveryAssign.
+type MockDeliveryAssignMockRecorder struct {
+	mock *MockDeliveryAssign
 }
 
-// NewMockdeliveryAssign creates a new mock instance.
-func NewMockdeliveryAssign(ctrl *gomock.Controller) *MockdeliveryAssign {
-	mock := &MockdeliveryAssign{ctrl: ctrl}
-	mock.recorder = &MockdeliveryAssignMockRecorder{mock}
+// NewMockDeliveryAssign creates a new mock instance.
+func NewMockDeliveryAssign(ctrl *gomock.Controller) *MockDeliveryAssign {
+	mock := &MockDeliveryAssign{ctrl: ctrl}
+	mock.recorder = &MockDeliveryAssignMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockdeliveryAssign) EXPECT() *MockdeliveryAssignMockRecorder {
+func (m *MockDeliveryAssign) EXPECT() *MockDeliveryAssignMockRecorder {
 	return m.recorder
 }
 
 // Assign mocks base method.
-func (m *MockdeliveryAssign) Assign(ctx context.Context, orderID order.OrderID) (*delivery.AssignResult, error) {
+func (m *MockDeliveryAssign) Assign(ctx context.Context, orderID order.OrderID) (*delivery.AssignResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Assign", ctx, orderID)
 	ret0, _ := ret[0].(*delivery.AssignResult)
@@ -429,37 +429,37 @@ func (m *MockdeliveryAssign) Assign(ctx context.Context, orderID order.OrderID) 
 }
 
 // Assign indicates an expected call of Assign.
-func (mr *MockdeliveryAssignMockRecorder) Assign(ctx, orderID any) *gomock.Call {
+func (mr *MockDeliveryAssignMockRecorder) Assign(ctx, orderID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Assign", reflect.TypeOf((*MockdeliveryAssign)(nil).Assign), ctx, orderID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Assign", reflect.TypeOf((*MockDeliveryAssign)(nil).Assign), ctx, orderID)
 }
 
-// MockdeliveryUnassign is a mock of deliveryUnassign interface.
-type MockdeliveryUnassign struct {
+// MockDeliveryUnassign is a mock of DeliveryUnassign interface.
+type MockDeliveryUnassign struct {
 	ctrl     *gomock.Controller
-	recorder *MockdeliveryUnassignMockRecorder
+	recorder *MockDeliveryUnassignMockRecorder
 	isgomock struct{}
 }
 
-// MockdeliveryUnassignMockRecorder is the mock recorder for MockdeliveryUnassign.
-type MockdeliveryUnassignMockRecorder struct {
-	mock *MockdeliveryUnassign
+// MockDeliveryUnassignMockRecorder is the mock recorder for MockDeliveryUnassign.
+type MockDeliveryUnassignMockRecorder struct {
+	mock *MockDeliveryUnassign
 }
 
-// NewMockdeliveryUnassign creates a new mock instance.
-func NewMockdeliveryUnassign(ctrl *gomock.Controller) *MockdeliveryUnassign {
-	mock := &MockdeliveryUnassign{ctrl: ctrl}
-	mock.recorder = &MockdeliveryUnassignMockRecorder{mock}
+// NewMockDeliveryUnassign creates a new mock instance.
+func NewMockDeliveryUnassign(ctrl *gomock.Controller) *MockDeliveryUnassign {
+	mock := &MockDeliveryUnassign{ctrl: ctrl}
+	mock.recorder = &MockDeliveryUnassignMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockdeliveryUnassign) EXPECT() *MockdeliveryUnassignMockRecorder {
+func (m *MockDeliveryUnassign) EXPECT() *MockDeliveryUnassignMockRecorder {
 	return m.recorder
 }
 
 // Unassign mocks base method.
-func (m *MockdeliveryUnassign) Unassign(ctx context.Context, orderID order.OrderID) (*delivery.UnassignResult, error) {
+func (m *MockDeliveryUnassign) Unassign(ctx context.Context, orderID order.OrderID) (*delivery.UnassignResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Unassign", ctx, orderID)
 	ret0, _ := ret[0].(*delivery.UnassignResult)
@@ -468,37 +468,37 @@ func (m *MockdeliveryUnassign) Unassign(ctx context.Context, orderID order.Order
 }
 
 // Unassign indicates an expected call of Unassign.
-func (mr *MockdeliveryUnassignMockRecorder) Unassign(ctx, orderID any) *gomock.Call {
+func (mr *MockDeliveryUnassignMockRecorder) Unassign(ctx, orderID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unassign", reflect.TypeOf((*MockdeliveryUnassign)(nil).Unassign), ctx, orderID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unassign", reflect.TypeOf((*MockDeliveryUnassign)(nil).Unassign), ctx, orderID)
 }
 
-// MockdeliveryComplete is a mock of deliveryComplete interface.
-type MockdeliveryComplete struct {
+// MockDeliveryComplete is a mock of DeliveryComplete interface.
+type MockDeliveryComplete struct {
 	ctrl     *gomock.Controller
-	recorder *MockdeliveryCompleteMockRecorder
+	recorder *MockDeliveryCompleteMockRecorder
 	isgomock struct{}
 }
 
-// MockdeliveryCompleteMockRecorder is the mock recorder for MockdeliveryComplete.
-type MockdeliveryCompleteMockRecorder struct {
-	mock *MockdeliveryComplete
+// MockDeliveryCompleteMockRecorder is the mock recorder for MockDeliveryComplete.
+type MockDeliveryCompleteMockRecorder struct {
+	mock *MockDeliveryComplete
 }
 
-// NewMockdeliveryComplete creates a new mock instance.
-func NewMockdeliveryComplete(ctrl *gomock.Controller) *MockdeliveryComplete {
-	mock := &MockdeliveryComplete{ctrl: ctrl}
-	mock.recorder = &MockdeliveryCompleteMockRecorder{mock}
+// NewMockDeliveryComplete creates a new mock instance.
+func NewMockDeliveryComplete(ctrl *gomock.Controller) *MockDeliveryComplete {
+	mock := &MockDeliveryComplete{ctrl: ctrl}
+	mock.recorder = &MockDeliveryCompleteMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockdeliveryComplete) EXPECT() *MockdeliveryCompleteMockRecorder {
+func (m *MockDeliveryComplete) EXPECT() *MockDeliveryCompleteMockRecorder {
 	return m.recorder
 }
 
 // Complete mocks base method.
-func (m *MockdeliveryComplete) Complete(ctx context.Context, orderID order.OrderID) (*delivery.CompleteResult, error) {
+func (m *MockDeliveryComplete) Complete(ctx context.Context, orderID order.OrderID) (*delivery.CompleteResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Complete", ctx, orderID)
 	ret0, _ := ret[0].(*delivery.CompleteResult)
@@ -507,7 +507,7 @@ func (m *MockdeliveryComplete) Complete(ctx context.Context, orderID order.Order
 }
 
 // Complete indicates an expected call of Complete.
-func (mr *MockdeliveryCompleteMockRecorder) Complete(ctx, orderID any) *gomock.Call {
+func (mr *MockDeliveryCompleteMockRecorder) Complete(ctx, orderID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Complete", reflect.TypeOf((*MockdeliveryComplete)(nil).Complete), ctx, orderID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Complete", reflect.TypeOf((*MockDeliveryComplete)(nil).Complete), ctx, orderID)
 }

@@ -17,4 +17,4 @@ type option func(*retryExecutor)
 
 type retryContextKey string
 
-const isRetryKey retryContextKey = "is_retry"
+const IsRetryKey retryContextKey = "is_retry"

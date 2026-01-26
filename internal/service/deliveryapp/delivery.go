@@ -102,12 +102,13 @@ func (ds *deliveryService) doUnassign(ctx context.Context, orderID order.OrderID
 	if err != nil {
 		return nil, err
 	}
-	if _, err = ds.courierRepo.SetAvailable(ctx, del.CourierID); err != nil {
+	courID, err := ds.courierRepo.SetAvailable(ctx, del.CourierID)
+	if err != nil {
 		return nil, err
 	}
+	unassignRes.CourierID = courID
 	unassignRes.OrderID = del.OrderID
 	unassignRes.Status = delivery.UnassignStatus
-	unassignRes.CourierID = del.CourierID
 
 	return &unassignRes, nil
 }

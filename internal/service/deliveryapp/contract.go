@@ -46,14 +46,14 @@ type deliveryExecutor interface {
 	Complete(ctx context.Context, orderID order.OrderID) (*delivery.CompleteResult, error)
 }
 
-type deliveryAssign interface {
+type DeliveryAssign interface {
 	Assign(ctx context.Context, orderID order.OrderID) (*delivery.AssignResult, error)
 }
 
-type deliveryUnassign interface {
+type DeliveryUnassign interface {
 	Unassign(ctx context.Context, orderID order.OrderID) (*delivery.UnassignResult, error)
 }
 
-type deliveryComplete interface {
+type DeliveryComplete interface {
 	Complete(ctx context.Context, orderID order.OrderID) (*delivery.CompleteResult, error)
 }

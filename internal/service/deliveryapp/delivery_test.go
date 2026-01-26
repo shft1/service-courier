@@ -177,6 +177,7 @@ func TestDeliveryService_Unassign(t *testing.T) {
 		name        string
 		dRepoDel    *delivery.Delivery
 		dRepoDelErr error
+		cRepoSa     int64
 		cRepoSaErr  error
 		srvExpErr   error
 		srvExp      *delivery.UnassignResult
@@ -185,6 +186,7 @@ func TestDeliveryService_Unassign(t *testing.T) {
 			"delivery not found",
 			nil,
 			delivery.ErrDeliveryNotFound,
+			int64(-1),
 			nil,
 			delivery.ErrDeliveryNotFound,
 			nil,
@@ -193,6 +195,7 @@ func TestDeliveryService_Unassign(t *testing.T) {
 			"unknown error for delete_delivery",
 			nil,
 			fmt.Errorf("some unknown wrapped error from repo"),
+			int64(-1),
 			nil,
 			nil,
 			nil,
@@ -201,6 +204,7 @@ func TestDeliveryService_Unassign(t *testing.T) {
 			"unknown error for set_available",
 			&delivery.Delivery{},
 			nil,
+			int64(-1),
 			fmt.Errorf("some unknown wrapped error from repo"),
 			nil,
 			nil,
@@ -209,6 +213,7 @@ func TestDeliveryService_Unassign(t *testing.T) {
 			"courier not found for set_available",
 			&delivery.Delivery{},
 			nil,
+			int64(-1),
 			courier.ErrCourierNotFound,
 			delivery.ErrDeliveryCourierLost,
 			nil,
@@ -223,6 +228,7 @@ func TestDeliveryService_Unassign(t *testing.T) {
 				Deadline:   func() time.Time { res, _ := time.Parse("2006-01-02 15:04:05", "2025-01-01 00:00:00"); return res }(),
 			},
 			nil,
+			int64(1),
 			nil,
 			nil,
 			&delivery.UnassignResult{
@@ -235,19 +241,21 @@ func TestDeliveryService_Unassign(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			md.EXPECT().
-				Delete(gomock.Any(), gomock.Any()).
-				Return(tt.dRepoDel, tt.dRepoDelErr)
-			if tt.dRepoDelErr == nil {
-				mc.EXPECT().
-					SetAvailable(gomock.Any(), gomock.Any()).
-					Return(int64(-1), tt.cRepoSaErr)
-			}
 			mtx.EXPECT().
 				Do(gomock.Any(), gomock.Any()).
 				DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 					return fn(ctx)
 				})
+
+			md.EXPECT().
+				Delete(gomock.Any(), gomock.Any()).
+				Return(tt.dRepoDel, tt.dRepoDelErr)
+
+			if tt.dRepoDelErr == nil {
+				mc.EXPECT().
+					SetAvailable(gomock.Any(), gomock.Any()).
+					Return(tt.cRepoSa, tt.cRepoSaErr)
+			}
 			ctx := context.Background()
 			s := deliveryapp.NewDeliveryService(deliveryapp.Arguments{
 				DelRepo: md, CourRepo: mc, Factory: mfac, TxManager: mtx,
@@ -260,6 +268,109 @@ func TestDeliveryService_Unassign(t *testing.T) {
 			} else {
 				assert.ErrorIs(t, err, tt.srvExpErr)
 			}
+		})
+	}
+}
+
+func TestDeliveryService_Complete(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	md := NewMockdeliveryRepository(ctrl)
+	mc := NewMockcourierRepository(ctrl)
+	mfac := NewMocktimeCalculatorFactory(ctrl)
+	mtx := NewMocktxManagerDo(ctrl)
+	unknownErr := fmt.Errorf("some unknown wrapped error from repo")
+
+	delSrv := deliveryapp.NewDeliveryService(deliveryapp.Arguments{
+		DelRepo: md, CourRepo: mc, Factory: mfac, TxManager: mtx,
+	})
+
+	tests := []struct {
+		name        string
+		dRepoGet    *delivery.Delivery
+		dRepoGetErr error
+		cRepoSa     int64
+		cRepoSaErr  error
+		srvExp      *delivery.CompleteResult
+		srvExpErr   error
+	}{
+		{
+			"valid",
+			&delivery.Delivery{
+				DeliveryID: 1,
+				CourierID:  1,
+				OrderID:    "some test orderID",
+				AssignedAt: func() time.Time { res, _ := time.Parse("2006-01-02 15:04:05", "2025-01-01 00:00:00"); return res }(),
+				Deadline:   func() time.Time { res, _ := time.Parse("2006-01-02 15:04:05", "2025-01-01 00:00:00"); return res }(),
+			},
+			nil,
+			int64(1),
+			nil,
+			&delivery.CompleteResult{
+				CourierID: int64(1),
+				OrderID:   "some test orderID",
+				Deadline:  func() time.Time { res, _ := time.Parse("2006-01-02 15:04:05", "2025-01-01 00:00:00"); return res }(),
+			},
+			nil,
+		},
+		{
+			"delivery not found",
+			nil,
+			delivery.ErrDeliveryNotFound,
+			int64(-1),
+			nil,
+			nil,
+			delivery.ErrDeliveryNotFound,
+		},
+		{
+			"courier not found",
+			nil,
+			courier.ErrCourierNotFound,
+			int64(-1),
+			nil,
+			nil,
+			delivery.ErrDeliveryCourierLost,
+		},
+		{
+			"wrapped unknown error from delivery.Get",
+			nil,
+			unknownErr,
+			int64(-1),
+			nil,
+			nil,
+			unknownErr,
+		},
+		{
+			"wrapped unknown error from courier.SetAvailable",
+			&delivery.Delivery{},
+			nil,
+			int64(-1),
+			unknownErr,
+			nil,
+			unknownErr,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mtx.EXPECT().
+				Do(gomock.Any(), gomock.Any()).
+				DoAndReturn(func(ctx context.Context, fn func(ctx context.Context) error) error {
+					return fn(ctx)
+				})
+
+			md.EXPECT().
+				Get(gomock.Any(), gomock.Any()).
+				Return(tt.dRepoGet, tt.dRepoGetErr)
+
+			if tt.dRepoGetErr == nil {
+				mc.EXPECT().
+					SetAvailable(gomock.Any(), gomock.Any()).
+					Return(tt.cRepoSa, tt.cRepoSaErr)
+			}
+			res, err := delSrv.Complete(context.Background(), order.OrderID{})
+
+			assert.Equal(t, tt.srvExp, res)
+			assert.ErrorIs(t, err, tt.srvExpErr)
 		})
 	}
 }
