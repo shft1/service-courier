@@ -1,6 +1,8 @@
-package middleware
+package mdhttp
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // responseWriter - переопределнный объект писателя
 type responseWriter struct {

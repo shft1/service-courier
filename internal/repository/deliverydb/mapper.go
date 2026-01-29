@@ -3,10 +3,11 @@ package deliverydb
 import (
 	"errors"
 	"fmt"
-	"service-courier/internal/domain/delivery"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+
+	"service-courier/internal/domain/delivery"
 )
 
 // mapError - маппинг ошибок репозитория доставок

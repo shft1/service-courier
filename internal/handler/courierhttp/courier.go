@@ -4,23 +4,24 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
-	"service-courier/internal/domain/courier"
-	"service-courier/observability/logger"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+
+	"service-courier/internal/domain/courier"
+	"service-courier/observability/logger"
 )
 
 // CourierHandler - обработчик курьеров
 type CourierHandler struct {
-	log logger.Logger
+	log     logger.Logger
 	service courierService
 }
 
 // NewCourierHandler - конструктор обработчика курьеров
 func NewCourierHandler(log logger.Logger, service courierService) *CourierHandler {
 	return &CourierHandler{
-		log: log,
+		log:     log,
 		service: service,
 	}
 }

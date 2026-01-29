@@ -3,13 +3,14 @@ package deliveryapp
 import (
 	"context"
 	"fmt"
+
 	"service-courier/internal/domain/order"
 )
 
 const (
-	created   = "created"
-	deleted   = "deleted"
-	completed = "completed"
+	Created   = "created"
+	Deleted   = "deleted"
+	Completed = "completed"
 )
 
 type factoryEventStrategy struct {
@@ -22,11 +23,11 @@ func NewFactoryEventStrategy(delExec deliveryExecutor) factoryEventStrategy {
 
 func (f factoryEventStrategy) GetEventStrategy(statusMsg, statusNow string) (Executor, error) {
 	switch {
-	case statusMsg == created && statusNow != deleted && statusNow != completed:
+	case statusMsg == Created && statusNow != Deleted && statusNow != Completed:
 		return AssignStrategy{f.delExec}, nil
-	case statusMsg == deleted && statusNow == deleted:
+	case statusMsg == Deleted && statusNow == Deleted:
 		return UnassignStrategy{f.delExec}, nil
-	case statusMsg == completed && statusNow == completed:
+	case statusMsg == Completed && statusNow == Completed:
 		return CompleteStrategy{f.delExec}, nil
 	default:
 		return nil, fmt.Errorf("the type of status (%s) is not do to processing", statusMsg)
@@ -34,33 +35,33 @@ func (f factoryEventStrategy) GetEventStrategy(statusMsg, statusNow string) (Exe
 }
 
 type AssignStrategy struct {
-	assign deliveryAssign
+	DeliveryAssign
 }
 
 func (as AssignStrategy) Execute(ctx context.Context, orderID order.OrderID) error {
-	if _, err := as.assign.Assign(ctx, orderID); err != nil {
+	if _, err := as.Assign(ctx, orderID); err != nil {
 		return err
 	}
 	return nil
 }
 
 type UnassignStrategy struct {
-	unassign deliveryUnassign
+	DeliveryUnassign
 }
 
 func (us UnassignStrategy) Execute(ctx context.Context, orderID order.OrderID) error {
-	if _, err := us.unassign.Unassign(ctx, orderID); err != nil {
+	if _, err := us.Unassign(ctx, orderID); err != nil {
 		return err
 	}
 	return nil
 }
 
 type CompleteStrategy struct {
-	complete deliveryComplete
+	DeliveryComplete
 }
 
 func (cmp CompleteStrategy) Execute(ctx context.Context, orderID order.OrderID) error {
-	if _, err := cmp.complete.Complete(ctx, orderID); err != nil {
+	if _, err := cmp.Complete(ctx, orderID); err != nil {
 		return err
 	}
 	return nil

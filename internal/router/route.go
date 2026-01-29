@@ -2,6 +2,9 @@ package router
 
 import (
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+
 	"service-courier/internal/handler/courierhttp"
 	"service-courier/internal/handler/deliveryhttp"
 	"service-courier/internal/handler/healthhttp"
@@ -9,18 +12,15 @@ import (
 	"service-courier/internal/router/deliveryroute"
 	"service-courier/internal/router/healthroute"
 	"service-courier/internal/router/metricsroute"
-
-	"github.com/go-chi/chi/v5"
 )
 
-
 type Middleware func(http.Handler) http.Handler
-
 
 // SetupRoute - регистрирует эндпоинты и middleware в роутере
 func SetupRoute(
 	loggerMW Middleware,
 	metricsMW Middleware,
+	limiter Middleware,
 	hHand *healthhttp.HealthHandler,
 	cHand *courierhttp.CourierHandler,
 	dHand *deliveryhttp.DeliveryHandler,
@@ -30,6 +30,7 @@ func SetupRoute(
 
 	mainRouter.Use(loggerMW)
 	mainRouter.Use(metricsMW)
+	mainRouter.Use(limiter)
 
 	healthroute.HealthRoute(mainRouter, hHand)
 	courierroute.CourierRoute(mainRouter, cHand)

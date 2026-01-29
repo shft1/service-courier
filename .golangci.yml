@@ -1,0 +1,57 @@
+version: "2"
+
+run:
+  issues-exit-code: 1
+  tests: true
+
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
+      colors: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  fix: true
+
+linters:
+  default: none
+  enable:
+    - staticcheck # все
+    - errcheck # игнорируемые ошибки
+    - bodyclose # проверка закрытия тела
+    - sqlclosecheck # закрытие SQL ресурсов
+    - contextcheck # context.Context первым аргументом
+    - ineffassign # бессмысленные присваивания
+    - unused # неиспользуемый код
+    - lll # длина строк
+    - gosec # уязвимости
+  settings:
+    errcheck:
+      exclude-functions:
+        - (*service-courier/observability/logger.ZapAdapter).Sync
+        - (*google.golang.org/grpc.ClientConn).Close
+        - (github.com/IBM/sarama.ConsumerGroup).Close
+        - (net/http.ResponseWriter).Write
+    gosec:
+      excludes:
+        - G404
+  exclusions:
+    generated: lax
+
+formatters:
+  enable:
+    - gci
+  settings:
+    gci:
+      sections:
+        - standard # стандартные пакеты
+        - default # не вошедшие в другие sections пакеты
+        - localmodule # локальные пакеты проекта
+  exclusions:
+    generated: lax
+    paths:
+      - migrations

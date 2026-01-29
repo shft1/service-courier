@@ -3,7 +3,9 @@ package deliveryhttp
 import (
 	"encoding/json"
 	"net/http"
+
 	"service-courier/internal/domain/delivery"
+	"service-courier/observability/logger"
 )
 
 func mapError(err error) (int, string) {
@@ -30,12 +32,17 @@ func mapError(err error) (int, string) {
 }
 
 // writeResponse - подготовка и отправка ответа для клиента
-func writeResponse(w http.ResponseWriter, status int, data any, err error) {
+func writeResponse(log logger.Logger, w http.ResponseWriter, status int, data any, err error) {
 	w.Header().Set("Content-Type", "application/json")
+
 	if err != nil {
 		stErr, msg := mapError(err)
 		w.WriteHeader(stErr)
-		json.NewEncoder(w).Encode(map[string]string{"error": msg})
+
+		err = json.NewEncoder(w).Encode(map[string]string{"error": msg})
+		if err != nil {
+			log.Error("delivery: failed to encode response", logger.NewField("error", err))
+		}
 		return
 	}
 	if data == nil {
@@ -43,5 +50,9 @@ func writeResponse(w http.ResponseWriter, status int, data any, err error) {
 		return
 	}
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
+
+	err = json.NewEncoder(w).Encode(data)
+	if err != nil {
+		log.Error("delivery: failed to encode response", logger.NewField("error", err))
+	}
 }

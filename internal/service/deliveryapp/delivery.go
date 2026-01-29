@@ -2,9 +2,17 @@ package deliveryapp
 
 import (
 	"context"
+
 	"service-courier/internal/domain/delivery"
 	"service-courier/internal/domain/order"
 )
+
+type Arguments struct {
+	DelRepo   deliveryRepository
+	CourRepo  courierRepository
+	Factory   timeCalculatorFactory
+	TxManager txManagerDo
+}
 
 // deliveryService - сервис доставки
 type deliveryService struct {
@@ -15,12 +23,12 @@ type deliveryService struct {
 }
 
 // NewDeliveryService - конструктор сервиса доставок
-func NewDeliveryService(dr deliveryRepository, cr courierRepository, factory timeCalculatorFactory, txManager txManagerDo) *deliveryService {
+func NewDeliveryService(args Arguments) *deliveryService {
 	return &deliveryService{
-		deliveryRepo: dr,
-		courierRepo:  cr,
-		factory:      factory,
-		txManager:    txManager,
+		deliveryRepo: args.DelRepo,
+		courierRepo:  args.CourRepo,
+		factory:      args.Factory,
+		txManager:    args.TxManager,
 	}
 }
 
@@ -94,12 +102,13 @@ func (ds *deliveryService) doUnassign(ctx context.Context, orderID order.OrderID
 	if err != nil {
 		return nil, err
 	}
-	if _, err = ds.courierRepo.SetAvailable(ctx, del.CourierID); err != nil {
+	courID, err := ds.courierRepo.SetAvailable(ctx, del.CourierID)
+	if err != nil {
 		return nil, err
 	}
+	unassignRes.CourierID = courID
 	unassignRes.OrderID = del.OrderID
 	unassignRes.Status = delivery.UnassignStatus
-	unassignRes.CourierID = del.CourierID
 
 	return &unassignRes, nil
 }

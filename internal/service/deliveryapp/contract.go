@@ -2,10 +2,11 @@ package deliveryapp
 
 import (
 	"context"
+	"time"
+
 	"service-courier/internal/domain/courier"
 	"service-courier/internal/domain/delivery"
 	"service-courier/internal/domain/order"
-	"time"
 )
 
 //go:generate mockgen -source=contract.go -destination=mocks_test.go -package=deliveryapp_test
@@ -45,14 +46,14 @@ type deliveryExecutor interface {
 	Complete(ctx context.Context, orderID order.OrderID) (*delivery.CompleteResult, error)
 }
 
-type deliveryAssign interface {
+type DeliveryAssign interface {
 	Assign(ctx context.Context, orderID order.OrderID) (*delivery.AssignResult, error)
 }
 
-type deliveryUnassign interface {
+type DeliveryUnassign interface {
 	Unassign(ctx context.Context, orderID order.OrderID) (*delivery.UnassignResult, error)
 }
 
-type deliveryComplete interface {
+type DeliveryComplete interface {
 	Complete(ctx context.Context, orderID order.OrderID) (*delivery.CompleteResult, error)
 }

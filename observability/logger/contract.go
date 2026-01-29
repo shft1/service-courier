@@ -10,7 +10,7 @@ type Logger interface {
 }
 
 type Field struct {
-	Key string
+	Key   string
 	Value any
 }
 
