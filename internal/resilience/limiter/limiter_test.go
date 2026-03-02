@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"service-courier/internal/resilience/limiter"
+	"github.com/shft1/service-courier/internal/resilience/limiter"
 )
 
 func TestTokenBucketLimiter_Allow(t *testing.T) {

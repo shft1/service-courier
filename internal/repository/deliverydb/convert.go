@@ -1,6 +1,6 @@
 package deliverydb
 
-import "service-courier/internal/domain/delivery"
+import "github.com/shft1/service-courier/internal/domain/delivery"
 
 func domainToRowCreate(del *delivery.AssignCreate) *deliveryCreateRow {
 	return &deliveryCreateRow{

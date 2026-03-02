@@ -5,8 +5,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"service-courier/internal/domain/delivery"
-	"service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/internal/domain/delivery"
+	"github.com/shft1/service-courier/internal/domain/order"
 )
 
 // deliveryRepository - репозиторий доставки

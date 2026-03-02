@@ -1,8 +1,8 @@
 package deliveryhttp
 
 import (
-	"service-courier/internal/domain/delivery"
-	"service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/internal/domain/delivery"
+	"github.com/shft1/service-courier/internal/domain/order"
 )
 
 func toDomainOrderID(req DeliveryOrderRequest) order.OrderID {

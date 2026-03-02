@@ -1,6 +1,6 @@
 package courierhttp
 
-import "service-courier/internal/domain/courier"
+import "github.com/shft1/service-courier/internal/domain/courier"
 
 func toDomainCreate(req *CourierCreateRequest) *courier.CourierCreate {
 	return &courier.CourierCreate{

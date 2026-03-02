@@ -12,11 +12,12 @@ package deliveryapp_test
 import (
 	context "context"
 	reflect "reflect"
-	courier "service-courier/internal/domain/courier"
-	delivery "service-courier/internal/domain/delivery"
-	order "service-courier/internal/domain/order"
-	deliveryapp "service-courier/internal/service/deliveryapp"
 	time "time"
+
+	courier "github.com/shft1/service-courier/internal/domain/courier"
+	delivery "github.com/shft1/service-courier/internal/domain/delivery"
+	order "github.com/shft1/service-courier/internal/domain/order"
+	deliveryapp "github.com/shft1/service-courier/internal/service/deliveryapp"
 
 	gomock "go.uber.org/mock/gomock"
 )

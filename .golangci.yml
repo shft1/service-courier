@@ -32,7 +32,7 @@ linters:
   settings:
     errcheck:
       exclude-functions:
-        - (*service-courier/observability/logger.ZapAdapter).Sync
+        - (*github.com/shft1/service-courier/observability/logger.ZapAdapter).Sync
         - (*google.golang.org/grpc.ClientConn).Close
         - (github.com/IBM/sarama.ConsumerGroup).Close
         - (net/http.ResponseWriter).Write

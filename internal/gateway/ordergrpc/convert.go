@@ -1,8 +1,8 @@
 package ordergrpc
 
 import (
-	"service-courier/internal/domain/order"
-	"service-courier/internal/proto/orderpb"
+	"github.com/shft1/service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/internal/proto/orderpb"
 )
 
 // toDomainOrderList - конвертатор в список доменных сущностей заказов

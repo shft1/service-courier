@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 type deliveryChecker interface {

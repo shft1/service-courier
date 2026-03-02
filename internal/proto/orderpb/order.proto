@@ -5,7 +5,7 @@ syntax = "proto3";
 package orders.v1;
 
 // Определяем пространство имен для генерации Go-кода
-option go_package = "service-courier/internal/proto/orderpb";
+option go_package = "github.com/shft1/service-courier/internal/proto/orderpb";
 
 // Импортируем стандартные типы Google
 import "google/protobuf/timestamp.proto";

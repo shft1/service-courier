@@ -10,9 +10,9 @@ import (
 	"go.uber.org/mock/gomock"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"service-courier/internal/domain/order"
-	"service-courier/internal/gateway/ordergrpc"
-	"service-courier/internal/proto/orderpb"
+	"github.com/shft1/service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/internal/gateway/ordergrpc"
+	"github.com/shft1/service-courier/internal/proto/orderpb"
 )
 
 func TestOrderGateway_GetOrders(t *testing.T) {

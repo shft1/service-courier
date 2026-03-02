@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 type ConsumerEnv struct {

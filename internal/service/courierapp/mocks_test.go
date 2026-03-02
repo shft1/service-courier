@@ -12,7 +12,8 @@ package courierapp_test
 import (
 	context "context"
 	reflect "reflect"
-	courier "service-courier/internal/domain/courier"
+
+	courier "github.com/shft1/service-courier/internal/domain/courier"
 
 	gomock "go.uber.org/mock/gomock"
 )

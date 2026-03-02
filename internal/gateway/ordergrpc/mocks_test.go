@@ -12,7 +12,8 @@ package ordergrpc_test
 import (
 	context "context"
 	reflect "reflect"
-	orderpb "service-courier/internal/proto/orderpb"
+
+	orderpb "github.com/shft1/service-courier/internal/proto/orderpb"
 
 	gomock "go.uber.org/mock/gomock"
 	grpc "google.golang.org/grpc"

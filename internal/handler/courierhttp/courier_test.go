@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"service-courier/internal/domain/courier"
-	"service-courier/internal/handler/courierhttp"
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/internal/domain/courier"
+	"github.com/shft1/service-courier/internal/handler/courierhttp"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 func TestCourierHandler_Create(t *testing.T) {

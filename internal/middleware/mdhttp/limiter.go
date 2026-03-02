@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"service-courier/internal/resilience/limiter"
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/internal/resilience/limiter"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 func NewLimiterMiddleware(log logger.Logger, limiter limiter.RateLimiter) func(http.Handler) http.Handler {

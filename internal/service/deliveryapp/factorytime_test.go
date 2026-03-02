@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"service-courier/internal/service/deliveryapp"
+	"github.com/shft1/service-courier/internal/service/deliveryapp"
 )
 
 func TestFactoryTimeCalculator(t *testing.T) {

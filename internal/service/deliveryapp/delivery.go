@@ -3,8 +3,8 @@ package deliveryapp
 import (
 	"context"
 
-	"service-courier/internal/domain/delivery"
-	"service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/internal/domain/delivery"
+	"github.com/shft1/service-courier/internal/domain/order"
 )
 
 type Arguments struct {

@@ -7,8 +7,8 @@ import (
 
 	"github.com/IBM/sarama"
 
-	"service-courier/internal/domain/order"
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 // consumeHandler - обработчик топика Kafka

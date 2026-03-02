@@ -7,8 +7,8 @@ import (
 
 	"github.com/IBM/sarama"
 
-	"service-courier/internal/config/consumercfg"
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/internal/config/consumercfg"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 type Arguments struct {

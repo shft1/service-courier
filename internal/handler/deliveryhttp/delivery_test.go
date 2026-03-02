@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"service-courier/internal/domain/delivery"
-	"service-courier/internal/handler/deliveryhttp"
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/internal/domain/delivery"
+	"github.com/shft1/service-courier/internal/handler/deliveryhttp"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 func TestDeliveryHandler_DeliveryAssign(t *testing.T) {

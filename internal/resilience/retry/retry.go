@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/internal/domain/order"
 )
 
 type retryExecutor struct {

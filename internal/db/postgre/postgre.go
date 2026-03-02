@@ -7,8 +7,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"service-courier/internal/config/dbcfg"
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/internal/config/dbcfg"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 func pingWithRetry(ctx context.Context, log logger.Logger, pool *pgxpool.Pool) error {

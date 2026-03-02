@@ -13,7 +13,7 @@ services:
       - "${POSTGRES_PORT}:${POSTGRES_LOCALPORT}"
     networks:
       - infrastructure_default
-  service-courier:
+  github.com/shft1/github.com/shft1/service-courier:
     build:
       context: ../../
       dockerfile: deploy/app/Dockerfile

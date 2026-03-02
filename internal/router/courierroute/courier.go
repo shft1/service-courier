@@ -3,7 +3,7 @@ package courierroute
 import (
 	"github.com/go-chi/chi/v5"
 
-	"service-courier/internal/handler/courierhttp"
+	"github.com/shft1/service-courier/internal/handler/courierhttp"
 )
 
 // CourierRoute - роуты для курьеров

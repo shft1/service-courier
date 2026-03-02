@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"service-courier/internal/domain/courier"
+	"github.com/shft1/service-courier/internal/domain/courier"
 )
 
 // mapError - маппинг ошибок сервиса курьеров

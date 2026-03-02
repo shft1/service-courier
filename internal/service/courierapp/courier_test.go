@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"service-courier/internal/domain/courier"
-	"service-courier/internal/service/courierapp"
+	"github.com/shft1/service-courier/internal/domain/courier"
+	"github.com/shft1/service-courier/internal/service/courierapp"
 )
 
 func TestCourierService_Create(t *testing.T) {

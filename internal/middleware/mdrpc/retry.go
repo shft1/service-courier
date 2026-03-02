@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"service-courier/internal/resilience/retry"
+	"github.com/shft1/service-courier/internal/resilience/retry"
 )
 
 func NewRetryInterceptor(retry retry.Retry) grpc.UnaryClientInterceptor {

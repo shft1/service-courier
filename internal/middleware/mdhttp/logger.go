@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 // NewLoggerMiddleware - конструктор Middleware для логгирования

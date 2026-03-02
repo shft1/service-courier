@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 type txContextKey struct{}

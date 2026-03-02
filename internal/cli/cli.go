@@ -5,7 +5,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	"service-courier/internal/config/appcfg"
+	"github.com/shft1/service-courier/internal/config/appcfg"
 )
 
 // CliHandler - парсер командной строки

@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"service-courier/internal/domain/courier"
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/internal/domain/courier"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 // CourierHandler - обработчик курьеров

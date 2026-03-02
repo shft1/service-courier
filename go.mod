@@ -1,4 +1,4 @@
-module service-courier
+module github.com/shft1/service-courier
 
 go 1.24.5
 

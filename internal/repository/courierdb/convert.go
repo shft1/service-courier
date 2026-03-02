@@ -1,6 +1,6 @@
 package courierdb
 
-import "service-courier/internal/domain/courier"
+import "github.com/shft1/service-courier/internal/domain/courier"
 
 func domainToRowCreate(cour *courier.CourierCreate) *courierCreateRow {
 	return &courierCreateRow{

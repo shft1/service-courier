@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"service-courier/observability/metrics/metricsrpc"
+	"github.com/shft1/service-courier/observability/metrics/metricsrpc"
 )
 
 func NewMetricsInterceptor(m *metricsrpc.RPCMetrics, isRetry func(context.Context) bool) grpc.UnaryClientInterceptor {

@@ -3,7 +3,7 @@ package healthroute
 import (
 	"github.com/go-chi/chi/v5"
 
-	"service-courier/internal/handler/healthhttp"
+	"github.com/shft1/service-courier/internal/handler/healthhttp"
 )
 
 // HealthRoute - роуты для health-проверок

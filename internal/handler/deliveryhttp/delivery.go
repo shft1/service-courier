@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"service-courier/internal/domain/delivery"
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/internal/domain/delivery"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 // DeliveryHandler - обработчик доставок

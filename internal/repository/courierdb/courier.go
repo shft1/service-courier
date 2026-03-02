@@ -7,7 +7,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"service-courier/internal/domain/courier"
+	"github.com/shft1/service-courier/internal/domain/courier"
 )
 
 const tableCouriers = "couriers"

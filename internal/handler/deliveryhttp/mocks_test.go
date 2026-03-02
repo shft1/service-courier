@@ -12,8 +12,9 @@ package deliveryhttp_test
 import (
 	context "context"
 	reflect "reflect"
-	delivery "service-courier/internal/domain/delivery"
-	order "service-courier/internal/domain/order"
+
+	delivery "github.com/shft1/service-courier/internal/domain/delivery"
+	order "github.com/shft1/service-courier/internal/domain/order"
 
 	gomock "go.uber.org/mock/gomock"
 )

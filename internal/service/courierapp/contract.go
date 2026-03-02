@@ -3,7 +3,7 @@ package courierapp
 import (
 	"context"
 
-	"service-courier/internal/domain/courier"
+	"github.com/shft1/service-courier/internal/domain/courier"
 )
 
 //go:generate mockgen -source=contract.go -destination=./mocks_test.go -package=courierapp_test

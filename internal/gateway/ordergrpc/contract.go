@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"service-courier/internal/proto/orderpb"
+	"github.com/shft1/service-courier/internal/proto/orderpb"
 )
 
 //go:generate mockgen -source=./contract.go -destination=./mocks_test.go -package=ordergrpc_test

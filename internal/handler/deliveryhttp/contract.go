@@ -3,8 +3,8 @@ package deliveryhttp
 import (
 	"context"
 
-	"service-courier/internal/domain/delivery"
-	"service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/internal/domain/delivery"
+	"github.com/shft1/service-courier/internal/domain/order"
 )
 
 //go:generate mockgen -source=contract.go -destination=./mocks_test.go -package=deliveryhttp_test

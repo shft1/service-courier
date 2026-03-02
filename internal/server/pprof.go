@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 func StartPprofServer(ctx context.Context, log logger.Logger, r chi.Router) {

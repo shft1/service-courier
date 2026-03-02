@@ -21,12 +21,12 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
-	"service-courier/internal/db/postgre"
-	"service-courier/internal/handler/courierhttp"
-	"service-courier/internal/repository/courierdb"
-	"service-courier/internal/router/courierroute"
-	"service-courier/internal/service/courierapp"
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/internal/db/postgre"
+	"github.com/shft1/service-courier/internal/handler/courierhttp"
+	"github.com/shft1/service-courier/internal/repository/courierdb"
+	"github.com/shft1/service-courier/internal/router/courierroute"
+	"github.com/shft1/service-courier/internal/service/courierapp"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 const (

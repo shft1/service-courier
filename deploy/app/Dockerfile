@@ -10,4 +10,4 @@ WORKDIR /
 COPY --from=builder /app/service /service-courier
 EXPOSE 8080
 USER nobody:nobody
-ENTRYPOINT ["/service-courier"]
+ENTRYPOINT ["/github.com/shft1/service-courier"]

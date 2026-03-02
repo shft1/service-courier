@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"service-courier/internal/resilience/retry"
+	"github.com/shft1/service-courier/internal/resilience/retry"
 )
 
 func TestRetryExecutor_ExecuteWithContext(t *testing.T) {

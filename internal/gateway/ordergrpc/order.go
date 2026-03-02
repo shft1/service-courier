@@ -7,8 +7,8 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"service-courier/internal/domain/order"
-	"service-courier/internal/proto/orderpb"
+	"github.com/shft1/service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/internal/proto/orderpb"
 )
 
 // orderGateway - gRPC шлюз с сервисом доставок

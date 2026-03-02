@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"service-courier/internal/domain/courier"
-	"service-courier/internal/domain/delivery"
-	"service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/internal/domain/courier"
+	"github.com/shft1/service-courier/internal/domain/delivery"
+	"github.com/shft1/service-courier/internal/domain/order"
 )
 
 //go:generate mockgen -source=contract.go -destination=mocks_test.go -package=deliveryapp_test

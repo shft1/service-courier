@@ -5,13 +5,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"service-courier/internal/handler/courierhttp"
-	"service-courier/internal/handler/deliveryhttp"
-	"service-courier/internal/handler/healthhttp"
-	"service-courier/internal/router/courierroute"
-	"service-courier/internal/router/deliveryroute"
-	"service-courier/internal/router/healthroute"
-	"service-courier/internal/router/metricsroute"
+	"github.com/shft1/service-courier/internal/handler/courierhttp"
+	"github.com/shft1/service-courier/internal/handler/deliveryhttp"
+	"github.com/shft1/service-courier/internal/handler/healthhttp"
+	"github.com/shft1/service-courier/internal/router/courierroute"
+	"github.com/shft1/service-courier/internal/router/deliveryroute"
+	"github.com/shft1/service-courier/internal/router/healthroute"
+	"github.com/shft1/service-courier/internal/router/metricsroute"
 )
 
 type Middleware func(http.Handler) http.Handler

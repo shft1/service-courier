@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"service-courier/internal/domain/courier"
-	"service-courier/internal/domain/delivery"
-	"service-courier/internal/domain/order"
-	"service-courier/internal/service/deliveryapp"
+	"github.com/shft1/service-courier/internal/domain/courier"
+	"github.com/shft1/service-courier/internal/domain/delivery"
+	"github.com/shft1/service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/internal/service/deliveryapp"
 )
 
 func TestDeliveryService_Assign(t *testing.T) {

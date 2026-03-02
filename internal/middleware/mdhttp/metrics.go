@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"service-courier/observability/metrics/metricshttp"
+	"github.com/shft1/service-courier/observability/metrics/metricshttp"
 )
 
 // NewMetricsMiddleware - конструктор Middleware для метрик

@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
-	"service-courier/internal/domain/courier"
+	"github.com/shft1/service-courier/internal/domain/courier"
 )
 
 // mapError - маппинг ошибок репозитория курьеров

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"service-courier/internal/service/deliveryapp"
+	"github.com/shft1/service-courier/internal/service/deliveryapp"
 )
 
 func TestFactoryEventStrategy_GetEventStrategy(t *testing.T) {

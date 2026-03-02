@@ -4,7 +4,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v6.33.1
-// source: orderpb/order.proto
+// source: internal/proto/orderpb/order.proto
 
 // Пакет для определённых сущностей и служб
 
@@ -163,5 +163,5 @@ var OrdersService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "orderpb/order.proto",
+	Metadata: "internal/proto/orderpb/order.proto",
 }

@@ -3,8 +3,8 @@ package orderbus
 import (
 	"context"
 
-	"service-courier/internal/domain/order"
-	"service-courier/internal/service/deliveryapp"
+	"github.com/shft1/service-courier/internal/domain/order"
+	"github.com/shft1/service-courier/internal/service/deliveryapp"
 )
 
 type eventStrategyFactory interface {

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"service-courier/internal/domain/courier"
-	"service-courier/observability/logger"
+	"github.com/shft1/service-courier/internal/domain/courier"
+	"github.com/shft1/service-courier/observability/logger"
 )
 
 func mapError(err error) (int, string) {
